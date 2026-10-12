@@ -1,0 +1,41 @@
+{
+  "name": "alexa-plus",
+  "version": "1.0.0",
+  "description": "Amazon Alexa+ Hackathon 2026 - Agentic Mission Execution Platform with Real MCP",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "mcp:server": "node src/mcp/server.mjs",
+    "mcp:test": "node tests/agent-orchestrator.test.mjs",
+    "test:wire": "node tests/openai-provider-wire.test.mjs",
+    "test:decoupling": "node tests/orchestrator-provider-driven.test.mjs",
+    "test:real": "node tests/agent-real-llm.test.mjs",
+    "test": "node tests/agent-orchestrator.test.mjs && node tests/orchestrator-provider-driven.test.mjs && node tests/openai-provider-wire.test.mjs && node tests/multi-tool-chain.test.mjs && node tests/calendar-mcp.test.mjs",
+    "build": "tsc"
+  },
+  "keywords": [
+    "alexa-plus",
+    "mcp",
+    "agentic-ai",
+    "model-context-protocol",
+    "amazon-developer-hackathon"
+  ],
+  "author": "Shanmukheswar",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "better-sqlite3": "^11.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}
