@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
-import { LuminousArc } from './LuminousArc';
+import { AmazonSmileArrow } from './AmazonBranding';
 import { cn } from '../../lib/utils';
 
 interface HeroBannerProps {
@@ -58,7 +58,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
         {/* Right Column: Luminous visual curve & floating elements */}
         <div className="relative flex items-center justify-center md:justify-end flex-shrink-0 min-w-[200px]">
           <div className="relative">
-            <LuminousArc size="md" variant="full" />
+            <AmazonSmileArrow width={160} />
             {children && (
               <div className="absolute inset-0 flex items-center justify-center">
                 {children}

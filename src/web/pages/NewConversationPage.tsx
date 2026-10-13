@@ -17,7 +17,7 @@ import {
   Loader2,
   ChevronDown,
 } from 'lucide-react';
-import { LuminousArc } from '../components/ui/LuminousArc';
+import { AmazonSmileArrow } from '../components/ui/AmazonBranding';
 import { createConversation, createMission } from '../api/client';
 import { useRouter } from '../state/router';
 import { cn } from '../lib/utils';
@@ -148,9 +148,9 @@ export const NewConversationPage: React.FC = () => {
     <div className="min-h-full flex flex-col justify-between px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-5xl mx-auto select-none">
       {/* 1. TOP HEADER & SIGNATURE LUMINOUS VISUAL */}
       <div className="flex flex-col items-center text-center max-w-2xl mx-auto pt-2">
-        {/* Signature Luminous Blue-to-Amber Smile Arc from Page 2 */}
+        {/* Signature Exact Amazon Smile Symbol */}
         <div className="mb-3 flex items-center justify-center">
-          <LuminousArc size="md" variant="full" />
+          <AmazonSmileArrow width={150} />
         </div>
 
         {/* Main Heading */}
