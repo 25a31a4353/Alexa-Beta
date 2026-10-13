@@ -2,7 +2,7 @@
 
 **Specification Version:** 1.0.0-LOCKED  
 **API Engine:** Fastify / Express / Next.js Server Endpoints  
-**Data Formats:** JSON (RFC 8259) & SSE (`text/event-stream`, RFC 8895)
+**Data Formats:** JSON (RFC 8259) & Server-Sent Events (SSE) event stream (`text/event-stream`, W3C / WHATWG HTML Standard)
 
 ---
 

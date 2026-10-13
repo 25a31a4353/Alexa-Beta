@@ -1,7 +1,8 @@
-import Database from 'better-sqlite3';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
+const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -9,9 +10,33 @@ const DB_PATH = process.env.ALEXA_DB_PATH || path.resolve(__dirname, '../../alex
 
 let dbInstance = null;
 
+function createConnection(dbPath) {
+  try {
+    const BetterSqlite = require('better-sqlite3');
+    const db = new BetterSqlite(dbPath);
+    return db;
+  } catch (err) {
+    // Graceful fallback to Node's built-in SQLite engine (zero native compiler dependency)
+    const { DatabaseSync } = require('node:sqlite');
+    const raw = new DatabaseSync(dbPath);
+    return {
+      exec: (sql) => raw.exec(sql),
+      pragma: (str) => raw.exec(`PRAGMA ${str}`),
+      prepare: (sql) => {
+        const stmt = raw.prepare(sql);
+        return {
+          run: (...params) => stmt.run(...params),
+          get: (...params) => stmt.get(...params),
+          all: (...params) => stmt.all(...params)
+        };
+      }
+    };
+  }
+}
+
 export function getDatabase() {
   if (!dbInstance) {
-    dbInstance = new Database(DB_PATH);
+    dbInstance = createConnection(DB_PATH);
     dbInstance.pragma('journal_mode = WAL');
     dbInstance.pragma('foreign_keys = ON');
     initSchema(dbInstance);
@@ -239,4 +264,317 @@ Enterprise demand for autonomous agents increased 340% year-over-year. Organizat
       '2026-10-08T14:30:00.000Z'
     );
   }
+
+  // 3. Conversations Table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS conversations (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      model_id TEXT NOT NULL DEFAULT 'gpt-4o',
+      status TEXT NOT NULL CHECK(status IN ('ACTIVE', 'ARCHIVED')) DEFAULT 'ACTIVE',
+      created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+      updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    );
+  `);
+
+  // 4. Missions Table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS missions (
+      id TEXT PRIMARY KEY,
+      conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      goal TEXT NOT NULL,
+      status TEXT NOT NULL CHECK(status IN (
+        'CREATED', 'UNDERSTANDING', 'PLANNING', 'EXECUTING', 'VERIFYING', 'COMPLETED', 'FAILED'
+      )) DEFAULT 'CREATED',
+      duration_ms INTEGER DEFAULT 0,
+      result_summary TEXT,
+      started_at TEXT,
+      completed_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+      updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_missions_conv ON missions(conversation_id);
+    CREATE INDEX IF NOT EXISTS idx_missions_status ON missions(status);
+  `);
+
+  // 5. Mission Steps Table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS mission_steps (
+      id TEXT PRIMARY KEY,
+      mission_id TEXT NOT NULL REFERENCES missions(id) ON DELETE CASCADE,
+      step_index INTEGER NOT NULL,
+      label TEXT NOT NULL,
+      domain TEXT NOT NULL DEFAULT 'SYSTEM',
+      assigned_tool TEXT,
+      status TEXT NOT NULL CHECK(status IN (
+        'PENDING', 'RUNNING', 'COMPLETED', 'FAILED'
+      )) DEFAULT 'PENDING',
+      duration_ms INTEGER DEFAULT 0,
+      started_at TEXT,
+      completed_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_steps_mission ON mission_steps(mission_id);
+  `);
+
+  // 6. Tool Executions Table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS tool_executions (
+      id TEXT PRIMARY KEY,
+      mission_id TEXT NOT NULL REFERENCES missions(id) ON DELETE CASCADE,
+      step_id TEXT REFERENCES mission_steps(id) ON DELETE SET NULL,
+      tool_name TEXT NOT NULL,
+      arguments TEXT NOT NULL,
+      status TEXT NOT NULL CHECK(status IN (
+        'PENDING', 'RUNNING', 'COMPLETED', 'FAILED'
+      )) DEFAULT 'PENDING',
+      output TEXT,
+      error_message TEXT,
+      duration_ms INTEGER DEFAULT 0,
+      started_at TEXT,
+      completed_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_tool_exec_mission ON tool_executions(mission_id);
+  `);
+
+  // 7. Activity Events Table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS activity_events (
+      id TEXT PRIMARY KEY,
+      mission_id TEXT REFERENCES missions(id) ON DELETE CASCADE,
+      conversation_id TEXT REFERENCES conversations(id) ON DELETE SET NULL,
+      event_type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      domain TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'INFO',
+      metadata TEXT,
+      is_synthetic INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_activity_mission ON activity_events(mission_id);
+    CREATE INDEX IF NOT EXISTS idx_activity_created ON activity_events(created_at);
+  `);
+
+  // 8. Integrations Table (Strict distinction between real vs demo data)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS integrations (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      category TEXT NOT NULL,
+      status TEXT NOT NULL CHECK(status IN (
+        'NOT_CONNECTED', 'AVAILABLE', 'DEMO', 'COMING_SOON', 'CONNECTED'
+      )) DEFAULT 'NOT_CONNECTED',
+      account_email TEXT,
+      is_synthetic INTEGER NOT NULL DEFAULT 0,
+      last_sync_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    );
+  `);
+
+  // Seed standard integrations if empty
+  const integrationCount = db.prepare('SELECT COUNT(*) as count FROM integrations').get().count;
+  if (integrationCount === 0) {
+    const insertIntegration = db.prepare(`
+      INSERT INTO integrations (id, name, category, status, account_email, is_synthetic, last_sync_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    // Explicitly labeled DEMO/AVAILABLE states (NEVER fake genuine unauthenticated connection)
+    insertIntegration.run('google-calendar', 'Google Calendar', 'Productivity', 'DEMO', 'shanmukheswar@example.com', 1, new Date().toISOString());
+    insertIntegration.run('google-drive', 'Google Drive', 'Knowledge', 'DEMO', 'shanmukheswar@example.com', 1, new Date().toISOString());
+    insertIntegration.run('gmail', 'Gmail', 'Communication', 'AVAILABLE', null, 1, null);
+    insertIntegration.run('notion', 'Notion', 'Knowledge', 'AVAILABLE', null, 1, null);
+    insertIntegration.run('slack', 'Slack', 'Communication', 'NOT_CONNECTED', null, 1, null);
+    insertIntegration.run('github', 'GitHub', 'Development', 'NOT_CONNECTED', null, 1, null);
+    insertIntegration.run('google-maps', 'Google Maps', 'Data', 'NOT_CONNECTED', null, 1, null);
+    insertIntegration.run('outlook', 'Microsoft Outlook', 'Communication', 'NOT_CONNECTED', null, 1, null);
+    insertIntegration.run('figma', 'Figma', 'Development', 'NOT_CONNECTED', null, 1, null);
+  }
+}
+
+// =========================================================================
+// REPOSITORY DATA ACCESS HELPERS
+// =========================================================================
+
+export function createConversation({ id, title, modelId = 'gpt-4o' }) {
+  const db = getDatabase();
+  const convId = id || `conv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  db.prepare(`
+    INSERT INTO conversations (id, title, model_id, status)
+    VALUES (?, ?, ?, 'ACTIVE')
+  `).run(convId, title, modelId);
+  return getConversation(convId);
+}
+
+export function getConversation(id) {
+  const db = getDatabase();
+  return db.prepare('SELECT * FROM conversations WHERE id = ?').get(id) || null;
+}
+
+export function listConversations() {
+  const db = getDatabase();
+  return db.prepare('SELECT * FROM conversations ORDER BY updated_at DESC').all();
+}
+
+export function createMission({ id, conversationId, title, goal }) {
+  const db = getDatabase();
+  const missionId = id || `msn_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  
+  // Ensure conversation exists or create default
+  let conv = getConversation(conversationId);
+  if (!conv) {
+    conv = createConversation({ id: conversationId, title: title || goal });
+  }
+
+  db.prepare(`
+    INSERT INTO missions (id, conversation_id, title, goal, status, created_at, updated_at)
+    VALUES (?, ?, ?, ?, 'CREATED', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  `).run(missionId, conv.id, title || goal, goal);
+
+  return getMission(missionId);
+}
+
+export function updateMission(id, updates) {
+  const db = getDatabase();
+  const fields = [];
+  const values = [];
+
+  for (const [key, val] of Object.entries(updates)) {
+    fields.push(`${key} = ?`);
+    values.push(val);
+  }
+
+  fields.push(`updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`);
+  values.push(id);
+
+  db.prepare(`UPDATE missions SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+  return getMission(id);
+}
+
+export function getMission(id) {
+  const db = getDatabase();
+  return db.prepare('SELECT * FROM missions WHERE id = ?').get(id) || null;
+}
+
+export function getMissionWithDetails(id) {
+  const db = getDatabase();
+  const mission = getMission(id);
+  if (!mission) return null;
+
+  const steps = db.prepare('SELECT * FROM mission_steps WHERE mission_id = ? ORDER BY step_index ASC').all(id);
+  const toolExecutions = db.prepare('SELECT * FROM tool_executions WHERE mission_id = ? ORDER BY created_at ASC').all(id);
+  const activityEvents = db.prepare('SELECT * FROM activity_events WHERE mission_id = ? ORDER BY created_at ASC').all(id);
+
+  return {
+    ...mission,
+    steps,
+    toolExecutions: toolExecutions.map(te => ({
+      ...te,
+      arguments: (() => { try { return JSON.parse(te.arguments); } catch { return te.arguments; } })(),
+      output: (() => { try { return JSON.parse(te.output); } catch { return te.output; } })()
+    })),
+    activityEvents: activityEvents.map(ae => ({
+      ...ae,
+      metadata: (() => { try { return JSON.parse(ae.metadata); } catch { return ae.metadata; } })()
+    }))
+  };
+}
+
+export function createMissionStep({ id, missionId, stepIndex, label, domain = 'SYSTEM', assignedTool = null, status = 'PENDING' }) {
+  const db = getDatabase();
+  const stepId = id || `step_${missionId}_${stepIndex}`;
+  db.prepare(`
+    INSERT INTO mission_steps (id, mission_id, step_index, label, domain, assigned_tool, status, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  `).run(stepId, missionId, stepIndex, label, domain, assignedTool, status);
+
+  return db.prepare('SELECT * FROM mission_steps WHERE id = ?').get(stepId);
+}
+
+export function updateMissionStep(id, updates) {
+  const db = getDatabase();
+  const fields = [];
+  const values = [];
+
+  for (const [key, val] of Object.entries(updates)) {
+    fields.push(`${key} = ?`);
+    values.push(val);
+  }
+  values.push(id);
+
+  db.prepare(`UPDATE mission_steps SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+  return db.prepare('SELECT * FROM mission_steps WHERE id = ?').get(id);
+}
+
+export function recordToolExecution({ id, missionId, stepId = null, toolName, arguments: args, status = 'RUNNING', startedAt = new Date().toISOString() }) {
+  const db = getDatabase();
+  const execId = id || `exec_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const argStr = typeof args === 'string' ? args : JSON.stringify(args);
+
+  db.prepare(`
+    INSERT INTO tool_executions (id, mission_id, step_id, tool_name, arguments, status, started_at, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  `).run(execId, missionId, stepId, toolName, argStr, status, startedAt);
+
+  return db.prepare('SELECT * FROM tool_executions WHERE id = ?').get(execId);
+}
+
+export function updateToolExecution(id, updates) {
+  const db = getDatabase();
+  const fields = [];
+  const values = [];
+
+  for (const [key, val] of Object.entries(updates)) {
+    fields.push(`${key} = ?`);
+    if (key === 'output' && typeof val === 'object' && val !== null) {
+      values.push(JSON.stringify(val));
+    } else {
+      values.push(val);
+    }
+  }
+  values.push(id);
+
+  db.prepare(`UPDATE tool_executions SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+  return db.prepare('SELECT * FROM tool_executions WHERE id = ?').get(id);
+}
+
+export function recordActivityEvent({ id, missionId = null, conversationId = null, eventType, title, description, domain, status = 'INFO', metadata = null, isSynthetic = 0 }) {
+  const db = getDatabase();
+  const eventId = id || `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const metaStr = metadata ? (typeof metadata === 'string' ? metadata : JSON.stringify(metadata)) : null;
+
+  db.prepare(`
+    INSERT INTO activity_events (id, mission_id, conversation_id, event_type, title, description, domain, status, metadata, is_synthetic, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  `).run(eventId, missionId, conversationId, eventType, title, description, domain, status, metaStr, isSynthetic ? 1 : 0);
+
+  return db.prepare('SELECT * FROM activity_events WHERE id = ?').get(eventId);
+}
+
+export function getActivityEvents({ limit = 50, domain = null, isSynthetic = null } = {}) {
+  const db = getDatabase();
+  let sql = 'SELECT * FROM activity_events WHERE 1=1';
+  const params = [];
+
+  if (domain) {
+    sql += ' AND domain = ?';
+    params.push(domain);
+  }
+  if (isSynthetic !== null) {
+    sql += ' AND is_synthetic = ?';
+    params.push(isSynthetic ? 1 : 0);
+  }
+
+  sql += ' ORDER BY created_at DESC LIMIT ?';
+  params.push(limit);
+
+  return db.prepare(sql).all(...params);
+}
+
+export function listIntegrations() {
+  const db = getDatabase();
+  return db.prepare('SELECT * FROM integrations ORDER BY name ASC').all();
 }
