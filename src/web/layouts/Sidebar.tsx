@@ -3,7 +3,6 @@ import {
   Home,
   SquarePen,
   Target,
-  MessageSquare,
   BookOpen,
   Wrench,
   Network,
@@ -20,12 +19,11 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-// Global Navigation Items matching the exact reference UI
+// Global Navigation Items — maintaining strictly one New Conversation option
 const NAV_ITEMS: NavItem[] = [
   { name: 'Home', path: '/home', icon: Home },
   { name: 'New Conversation', path: '/new', icon: SquarePen },
   { name: 'Missions', path: '/missions', icon: Target },
-  { name: 'Conversations', path: '/new', icon: MessageSquare },
   { name: 'Knowledge', path: '/knowledge', icon: BookOpen },
   { name: 'Tools', path: '/tools', icon: Wrench },
   { name: 'Integrations', path: '/integrations', icon: Network },
