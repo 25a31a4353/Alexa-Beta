@@ -2,16 +2,16 @@ import React from 'react';
 import {
   Home,
   SquarePen,
-  Compass,
+  Target,
+  MessageSquare,
   BookOpen,
   Wrench,
-  Boxes,
+  Network,
   BarChart2,
   Settings,
   ChevronRight,
 } from 'lucide-react';
 import { useRouter } from '../state/router';
-import { Avatar } from '../components/ui/Avatar';
 import { cn } from '../lib/utils';
 
 interface NavItem {
@@ -20,14 +20,15 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-// IMMUTABLE 8 SIDEBAR NAVIGATION ITEMS (STRICT VISUAL & ARCHITECTURAL CONTRACT)
+// Global Navigation Items matching the exact reference UI
 const NAV_ITEMS: NavItem[] = [
   { name: 'Home', path: '/home', icon: Home },
   { name: 'New Conversation', path: '/new', icon: SquarePen },
-  { name: 'Missions', path: '/missions', icon: Compass },
+  { name: 'Missions', path: '/missions', icon: Target },
+  { name: 'Conversations', path: '/new', icon: MessageSquare },
   { name: 'Knowledge', path: '/knowledge', icon: BookOpen },
   { name: 'Tools', path: '/tools', icon: Wrench },
-  { name: 'Integrations', path: '/integrations', icon: Boxes },
+  { name: 'Integrations', path: '/integrations', icon: Network },
   { name: 'Activity', path: '/activity', icon: BarChart2 },
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
@@ -56,21 +57,20 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
       <aside
         className={cn(
           'fixed lg:static top-14 bottom-0 left-0 z-40',
-          'w-60 bg-brand-sidebar border-r border-slate-800/80',
+          'w-60 bg-[#090D16] border-r border-[#161F30]',
           'flex flex-col justify-between select-none h-[calc(100vh-3.5rem)] flex-shrink-0',
           'transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
-        {/* Navigation Items (Strictly 8 Items) */}
-        <div className="py-3 px-2.5 overflow-y-auto">
+        {/* Navigation Items */}
+        <div className="py-3 px-3 overflow-y-auto">
           <nav className="space-y-1" aria-label="Global Primary Navigation">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                path === item.path ||
-                (item.path === '/home' && path === '/') ||
-                (item.path === '/missions' && path.startsWith('/missions'));
+              const isHomeActive = item.name === 'Home' && (path === '/home' || path === '/');
+              const isOtherActive = item.name !== 'Home' && path.startsWith(item.path);
+              const isActive = isHomeActive || isOtherActive;
 
               return (
                 <button
@@ -78,16 +78,16 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
                   onClick={() => handleNav(item.path)}
                   id={`nav-link-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                   className={cn(
-                    'w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-smooth group',
+                    'w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 group text-left',
                     isActive
-                      ? 'bg-blue-600/15 text-blue-400 border border-blue-500/25 shadow-xs font-semibold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                      ? 'bg-[#13233F] text-[#60A5FA] border border-[#1E3A8A]/60 shadow-xs font-semibold'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#121826]'
                   )}
                 >
                   <Icon
                     className={cn(
-                      'w-4 h-4 flex-shrink-0 transition-colors',
-                      isActive ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'
+                      'w-4 h-4 flex-shrink-0 transition-colors stroke-[1.8]',
+                      isActive ? 'text-[#60A5FA]' : 'text-slate-400 group-hover:text-slate-200'
                     )}
                   />
                   <span className="truncate">{item.name}</span>
@@ -98,13 +98,15 @@ export const Sidebar: React.FC<{ isOpen?: boolean; onClose?: () => void }> = ({
         </div>
 
         {/* Bottom User Profile Card */}
-        <div className="p-3 border-t border-slate-800/80">
+        <div className="p-3 border-t border-[#161F30]">
           <button
             onClick={() => handleNav('/settings')}
-            className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-800/60 transition-smooth group focus:outline-none"
+            className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-[#121826] transition-smooth group focus:outline-none"
           >
             <div className="flex items-center space-x-2.5 truncate">
-              <Avatar initials="SM" size="sm" status="online" />
+              <div className="w-8 h-8 rounded-full bg-[#2B6CB0] text-white font-semibold text-xs flex items-center justify-center flex-shrink-0">
+                SM
+              </div>
               <div className="text-left truncate">
                 <div className="text-xs font-semibold text-slate-200 group-hover:text-white truncate">
                   Shanmukheswar
