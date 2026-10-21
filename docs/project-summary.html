@@ -2,75 +2,79 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Alexa+ Autonomous Mission Platform — Complete Project Dossier</title>
+  <title>Alexa+ Autonomous Mission Execution Platform — Master Project Blueprint & Technical Reference Dossier</title>
   <style>
     @page {
       size: A4;
-      margin: 18mm 16mm;
+      margin: 11mm 12mm 11mm 12mm;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #1e293b;
-      line-height: 1.55;
-      font-size: 11pt;
+      color: #0f172a;
+      line-height: 1.5;
+      font-size: 8.5pt;
       margin: 0;
       padding: 0;
     }
     h1, h2, h3, h4 {
-      color: #0f172a;
+      color: #090d16;
       font-weight: 700;
       page-break-after: avoid;
     }
     h1 {
-      font-size: 22pt;
-      border-bottom: 2px solid #2563eb;
-      padding-bottom: 8px;
-      margin-bottom: 12px;
+      font-size: 20pt;
+      border-bottom: 3px solid #1d63ed;
+      padding-bottom: 6px;
+      margin-top: 0;
+      margin-bottom: 8px;
     }
     h2 {
-      font-size: 15pt;
-      border-bottom: 1px solid #cbd5e1;
+      font-size: 13.5pt;
+      border-bottom: 1.5px solid #cbd5e1;
       padding-bottom: 4px;
-      margin-top: 24px;
-      margin-bottom: 10px;
+      margin-top: 20px;
+      margin-bottom: 8px;
     }
     h3 {
-      font-size: 12pt;
-      margin-top: 16px;
+      font-size: 10.5pt;
+      margin-top: 14px;
       margin-bottom: 6px;
+      color: #1e3a8a;
     }
     .badge {
       display: inline-block;
-      padding: 2px 8px;
-      font-size: 9pt;
-      font-weight: 600;
-      border-radius: 9999px;
-      background: #eff6ff;
-      color: #1d4ed8;
-      border: 1px solid #bfdbfe;
+      padding: 2px 7px;
+      font-size: 7.5pt;
+      font-weight: 700;
+      border-radius: 4px;
       margin-right: 4px;
     }
     .badge-green {
       background: #ecfdf5;
       color: #047857;
-      border-color: #a7f3d0;
+      border: 1px solid #a7f3d0;
     }
     .badge-amber {
       background: #fffbeb;
       color: #b45309;
-      border-color: #fde68a;
+      border: 1px solid #fde68a;
     }
     .badge-red {
       background: #fef2f2;
       color: #b91c1c;
-      border-color: #fecaca;
+      border: 1px solid #fecaca;
+    }
+    .badge-blue {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 10px 0 16px 0;
-      font-size: 8.5pt;
-      line-height: 1.45;
+      margin: 8px 0 14px 0;
+      font-size: 8pt;
+      line-height: 1.4;
       page-break-inside: auto;
     }
     thead {
@@ -78,90 +82,84 @@
     }
     tr {
       page-break-inside: avoid;
-      page-break-after: auto;
     }
     th, td {
       border: 1px solid #cbd5e1;
-      padding: 6px 8px;
+      padding: 5px 7px;
       text-align: left;
       vertical-align: top;
     }
     th {
-      background-color: #f1f5f9;
-      color: #0f172a;
+      background-color: #0f172a;
+      color: #ffffff;
       font-weight: 600;
+      font-size: 8pt;
+    }
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
     }
     pre, code {
       font-family: Consolas, "Liberation Mono", Courier, monospace;
-      font-size: 9pt;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
+      font-size: 7.5pt;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 3px;
     }
     code {
-      padding: 1px 4px;
+      padding: 1px 3px;
       color: #0f172a;
+      font-weight: 600;
     }
     pre {
-      padding: 10px;
+      padding: 6px 8px;
       overflow-x: auto;
       white-space: pre-wrap;
+      line-height: 1.35;
     }
     .screenshot-card {
-      margin: 18px 0;
-      padding: 12px;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
+      margin: 12px 0;
+      padding: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
       background: #f8fafc;
       page-break-inside: avoid;
       text-align: center;
     }
     .screenshot-card img {
       max-width: 100%;
-      max-height: 430px;
+      max-height: 380px;
       height: auto;
       object-fit: contain;
-      border-radius: 6px;
-      border: 1px solid #cbd5e1;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+      border: 1px solid #94a3b8;
     }
     .screenshot-caption {
-      font-size: 10pt;
+      font-size: 8.5pt;
       color: #0f172a;
-      margin-top: 8px;
+      margin-top: 6px;
       font-weight: 700;
     }
     .screenshot-details {
-      margin-top: 10px;
-      padding: 10px 14px;
+      margin-top: 6px;
+      padding: 6px 10px;
       background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 6px;
+      border-radius: 4px;
       text-align: left;
-      font-size: 9pt;
-      line-height: 1.5;
+      font-size: 7.5pt;
+      line-height: 1.4;
       color: #334155;
-    }
-    .screenshot-details p {
-      margin: 4px 0;
-    }
-    .screenshot-details ul {
-      margin: 4px 0 0 16px;
-      padding: 0;
-    }
-    .screenshot-details li {
-      margin-bottom: 2px;
     }
     .page-break {
       page-break-before: always;
     }
     .callout {
-      padding: 10px 14px;
+      padding: 8px 12px;
       background: #f0fdf4;
       border-left: 4px solid #16a34a;
-      border-radius: 0 6px 6px 0;
-      margin: 12px 0;
-      font-size: 9.5pt;
+      border-radius: 0 4px 4px 0;
+      margin: 10px 0;
+      font-size: 8pt;
     }
   </style>
 </head>
@@ -169,390 +167,500 @@
 
   <!-- COVER / HEADER -->
   <h1>Alexa+ Mission Execution Platform</h1>
-  <p><strong>Comprehensive Master Project Dossier & Current State Blueprint</strong><br>
-  <em>Prepared for Shanmukheswar | Hackathon 2026 Submission</em></p>
+  <p style="margin-top: 2px; margin-bottom: 10px;">
+    <strong>Comprehensive Master Project Blueprint & Technical Reference Dossier</strong><br>
+    <em>Primary Developer: Shanmukheswara Medicharla (shanmukheswaramedicharla@gmail.com) | Hackathon Window: 2026</em>
+  </p>
 
-  <div style="margin: 14px 0;">
-    <span class="badge badge-green">Primary Track: Alexa+</span>
-    <span class="badge badge-amber">Mini-Challenge: AWS Builder</span>
-    <span class="badge badge-green">Mini-Challenge: Open Source</span>
-    <span class="badge">16 Test Suites: 100% Pass</span>
-    <span class="badge">TypeScript: 0 Errors</span>
-  </div>
-
-  <div class="callout">
-    <strong>Purpose of this Document:</strong> This document contains pin-to-pin technical details, architecture records, test proofs, prototype screenshots, and an inventory of completed and remaining work. When starting a fresh session, provide this document to orient the assistant in 30 seconds.
+  <div style="margin: 8px 0 14px 0;">
+    <span class="badge badge-green">Primary Track: Alexa+ (Self-Hosted MCP Streamable HTTP)</span>
+    <span class="badge badge-amber">Mini-Challenge 1: AWS Builder (Amazon Bedrock Converse API)</span>
+    <span class="badge badge-blue">Mini-Challenge 2: Open Source (mcp-session-reaper MIT)</span>
   </div>
 
   <!-- SECTION 1 -->
-  <h2>1. Executive Summary & Positioning</h2>
-  <p>
-    This project is an <strong>Alexa+-inspired autonomous agentic assistant platform</strong> built around the official <strong>Model Context Protocol (MCP) Streamable HTTP</strong> specification (spec <code>2025-11-25+</code>). Rather than simulating tool execution through static chat prompts, the platform connects an agent orchestrator to an independent self-hosted MCP server (<code>:3001/mcp</code>) over HTTP with dynamic capability discovery and persistent SQLite state tracking.
-  </p>
+  <h2>1. Executive Summary & Architecture Overview</h2>
+  <p>The <strong>Alexa+ Mission Execution Platform</strong> transforms conversational assistants into an enterprise-grade autonomous execution engine. Grounded in the official Model Context Protocol (MCP) Streamable HTTP specification (<code>2025-11-25</code>), Alexa+ bridges high-level user intent into structured multi-step Directed Acyclic Graph (DAG) plans, dynamically discovers registered MCP tools, executes tool calls with sub-50ms latency, and streams real-time step progress over Server-Sent Events (SSE).</p>
 
-  <!-- SECTION 2 -->
-  <h2>2. System Architecture Blueprint</h2>
-  <pre>
-                            USER (Browser)
-                                  │
-                                  ▼
-                    SIMULATED ASSISTANT WEB APP
-                (React 19 + TypeScript + Tailwind CSS)
-                                  │
-                          HTTP / SSE Streaming
-                                  │
-                                  ▼
-                         APPLICATION API SERVER
-                          (Express on Port 3000)
-                                  │
-                                  ▼
-                          AGENT ORCHESTRATOR
-                     ┌────────────┼────────────┐
-                     │            │            │
-                 Understand     Plan        Verify
-                     │            │            │
-                     └────────────┼────────────┘
-                                  │
-                           MCP CLIENT LAYER
-                                  │
-                       Streamable HTTP Transport
-                           POST /mcp (SSE)
-                                  │
-                                  ▼
-                         SELF-HOSTED MCP SERVER
-                      (Port 3001/mcp - Spec 2025-11-25+)
-                     ┌────────────┼────────────┐
-                     ▼            ▼            ▼
-               calendar_get   knowledge_   document_
-                  events        search      analyze
-                     │            │            │
-                     └────────────┼────────────┘
-                                  │
-                                  ▼
-                          LOCAL PERSISTENCE
-                    (SQLite: data/alexa_plus.db)
-  </pre>
+  <div class="callout">
+    <strong>Core Architectural Tenet: Zero Deceptive Claims.</strong> The application operates under a verified <em>Honest Capability Model</em>. Local capabilities (Calendar, Documents, Knowledge Base) run via real SQLite persistence and self-hosted MCP server tools. Simulated integrations (Slack, Gmail, Notion) are explicitly labeled with <code>DEMO CAPABILITY</code> badges rather than fake OAuth flows.
+  </div>
 
-  <!-- SECTION 3 -->
-  <h2>3. Pin-to-Pin Feature & Reality Catalog</h2>
-
+  <h3>System Topology & Port Allocations</h3>
   <table>
     <thead>
       <tr>
-        <th>Component</th>
-        <th>User Interaction</th>
-        <th>Underlying Execution</th>
-        <th>Grounding</th>
+        <th>Subsystem</th>
+        <th>Binding Port</th>
+        <th>Transport / Protocol</th>
+        <th>Implementation File</th>
+        <th>Core Responsibility</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td><strong>Natural Composer</strong></td>
-        <td>Prompt typing, keyboard submit (Ctrl+Enter), popular use case pills.</td>
-        <td>Generates conversation ID and mission entity via <code>POST /api/missions</code>.</td>
-        <td>SQLite relational persistence</td>
+        <td><strong>MCP Server</strong></td>
+        <td><code>3001</code></td>
+        <td><code>Streamable HTTP</code> (<code>/mcp</code>)</td>
+        <td><code>src/mcp/server.mjs</code></td>
+        <td>Hosts official <code>@modelcontextprotocol/sdk</code> server, dynamic <code>tools/list</code>, and <code>tools/call</code> RPC execution.</td>
       </tr>
       <tr>
-        <td><strong>Execution Modes</strong></td>
-        <td>ChatGPT-style dropdown: <em>Quick, Deep Research, Autonomous, Build</em>.</td>
-        <td>Instructs orchestrator to generate 2 to 4-step execution DAGs tailored to depth.</td>
-        <td>Real DAG planning</td>
+        <td><strong>Application API</strong></td>
+        <td><code>3000</code></td>
+        <td><code>REST + SSE</code> (HTTP)</td>
+        <td><code>src/api/server.mjs</code></td>
+        <td>Handles conversation lifecycle, mission DAG dispatch, SQLite persistence, and live SSE event bus broadcasting.</td>
       </tr>
       <tr>
-        <td><strong>Document Attachment</strong></td>
-        <td><code>+</code> and paperclip buttons upload PDF, DOCX, TXT, MD, JSON.</td>
-        <td>Calls <code>POST /api/knowledge/upload</code> and indexes into knowledge store.</td>
-        <td>SQLite knowledge table</td>
+        <td><strong>Web Application</strong></td>
+        <td><code>5173</code></td>
+        <td><code>Vite + React + TS</code></td>
+        <td><code>src/web/App.tsx</code></td>
+        <td>Pixel-perfect reference UI with dark navigation, single-row capability pills, interactive tool runner, and DAG stepper.</td>
       </tr>
       <tr>
-        <td><strong>Voice Dictation</strong></td>
-        <td>Microphone button with animated pulse indicator.</td>
-        <td>Web Speech API (SpeechRecognition) appends text to prompt.</td>
-        <td>Browser Web Speech API</td>
+        <td><strong>Persistence Store</strong></td>
+        <td>Disk</td>
+        <td><code>SQLite (WAL Mode)</code></td>
+        <td><code>src/db/index.mjs</code></td>
+        <td>Relational durability across 9 tables with foreign keys and zero orphaned step or tool records.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 2 -->
+  <div class="page-break"></div>
+  <h2>2. Complete Codebase Inventory & File System Map</h2>
+  <p>The following file tree documents the exact responsibility of every file in the project repository:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 30%;">File Path</th>
+        <th style="width: 25%;">Language / Module</th>
+        <th style="width: 45%;">Exact Responsibility & Architectural Role</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>src/mcp/server.mjs</code></td>
+        <td>Node.js (ESM)</td>
+        <td>Self-hosted MCP server on port 3001 using <code>McpServer</code> from <code>@modelcontextprotocol/sdk</code> over <code>StreamableHTTPServerTransport</code>.</td>
       </tr>
       <tr>
-        <td><strong>Mission Workspace</strong></td>
-        <td>Live stages: <em>Understand → Plan → Tools → Verify → Result</em>.</td>
-        <td>Subscribes to Server-Sent Events (SSE) from <code>/api/missions/:id/stream</code>.</td>
-        <td>Real-time SSE event bus</td>
+        <td><code>src/mcp/tools/calendar.mjs</code></td>
+        <td>Node.js (ESM)</td>
+        <td>Implementation of <code>calendar_get_events</code> tool with JSON Schema (daysAhead, includeAttendees) querying SQLite.</td>
       </tr>
       <tr>
-        <td><strong>Interactive Tool Runner</strong></td>
-        <td>Tools page "Use" button opens runner modal.</td>
-        <td>Executes JSON arguments against MCP server via <code>POST /api/tools/:name/execute</code>.</td>
-        <td>Raw MCP JSON-RPC 2.0</td>
+        <td><code>src/mcp/tools/knowledge.mjs</code></td>
+        <td>Node.js (ESM)</td>
+        <td>Implementation of <code>knowledge_search</code> and <code>document_analyze</code> tools for semantic full-text inspection.</td>
       </tr>
       <tr>
-        <td><strong>Options Menu (3 Dots)</strong></td>
-        <td>Missions page header dropdown.</td>
-        <td>Copy ID, copy goal text, re-run mission, delete mission (<code>DELETE /api/missions/:id</code>).</td>
-        <td>SQLite database mutation</td>
+        <td><code>src/mcp/tools/system.mjs</code></td>
+        <td>Node.js (ESM)</td>
+        <td>Implementation of <code>ping</code> tool for roundtrip latency measurement and transport liveness heartbeat.</td>
       </tr>
       <tr>
-        <td><strong>Honest Integrations</strong></td>
-        <td>Integrations page configure/connect modal.</td>
-        <td>Configures API keys and email (<code>shanmukheswaramedicharla@gmail.com</code>).</td>
-        <td>Explicit status in SQLite</td>
+        <td><code>src/api/server.mjs</code></td>
+        <td>Express.js (ESM)</td>
+        <td>Main backend application API: routes for missions, conversations, tools proxy, SSE streaming, and settings.</td>
+      </tr>
+      <tr>
+        <td><code>src/db/index.mjs</code></td>
+        <td>SQLite (Node SQLite / better-sqlite3)</td>
+        <td>Database initialization, schema migrations, WAL pragmas, and CRUD helpers for all 9 tables.</td>
+      </tr>
+      <tr>
+        <td><code>src/agent/orchestrator.mjs</code></td>
+        <td>Node.js (ESM)</td>
+        <td><code>AgentOrchestrator</code> class: 5-phase DAG generation, tool selection, step sequencing, and SSE event dispatch.</td>
+      </tr>
+      <tr>
+        <td><code>src/agent/llm/provider.mjs</code></td>
+        <td>Node.js (ESM)</td>
+        <td><code>ProviderFactory</code>: routes prompt inference dynamically between AWS Bedrock, OpenAI GPT-4o, and Autonomous Engine.</td>
+      </tr>
+      <tr>
+        <td><code>src/agent/llm/bedrock.mjs</code></td>
+        <td>Node.js (<code>@aws-sdk</code>)</td>
+        <td>AWS Builder Track: Amazon Bedrock <code>ConverseCommand</code> client for Claude 3.5 Sonnet and Nova Pro.</td>
+      </tr>
+      <tr>
+        <td><code>src/agent/llm/base.mjs</code></td>
+        <td>Node.js (ESM)</td>
+        <td><code>AutonomousDecisionEngine</code>: deterministic rule-based planner guaranteeing 100% offline uptime and test reproducibility.</td>
+      </tr>
+      <tr>
+        <td><code>packages/mcp-session-reaper/</code></td>
+        <td>Standalone Package (MIT)</td>
+        <td>Open Source Track: automated socket-aware connection scavenger for MCP Streamable HTTP transports.</td>
+      </tr>
+      <tr>
+        <td><code>src/web/pages/NewConversationPage.tsx</code></td>
+        <td>React + TypeScript</td>
+        <td>Home view: prompt composer, document attachments, voice microphone, mini-challenge badges, quick cards.</td>
+      </tr>
+      <tr>
+        <td><code>src/web/pages/MissionWorkspacePage.tsx</code></td>
+        <td>React + TypeScript</td>
+        <td>Missions workspace: real-time 5-phase visual DAG stepper, step duration counters, tool trace accordions.</td>
+      </tr>
+      <tr>
+        <td><code>src/web/pages/ToolsPage.tsx</code></td>
+        <td>React + TypeScript</td>
+        <td>Tools catalog: live MCP discovery table, parameter runner modal, monospace JSON execution terminal.</td>
+      </tr>
+      <tr>
+        <td><code>src/web/pages/KnowledgePage.tsx</code></td>
+        <td>React + TypeScript</td>
+        <td>Knowledge repository: document upload, chunk catalog, live MCP search testing console.</td>
+      </tr>
+      <tr>
+        <td><code>src/web/pages/IntegrationsPage.tsx</code></td>
+        <td>React + TypeScript</td>
+        <td>Integrations matrix: category filtering, honest capability status badges, credential configuration modal.</td>
+      </tr>
+      <tr>
+        <td><code>src/web/pages/ActivityPage.tsx</code></td>
+        <td>React + TypeScript</td>
+        <td>Activity timeline: chronological event stream, severity filters, JSON metadata viewers, log export.</td>
+      </tr>
+      <tr>
+        <td><code>src/web/pages/SettingsPage.tsx</code></td>
+        <td>React + TypeScript</td>
+        <td>Runtime configuration: profile card, AWS Builder card, Open Source Reaper card, API key forms.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 3 -->
+  <div class="page-break"></div>
+  <h2>3. SQLite Persistence Schema Specification</h2>
+  <p>The platform stores all state in <code>data/alexa_plus.db</code> (or fallback built-in node:sqlite). The schema consists of 9 relational tables with enforced foreign key cascades:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Table Name</th>
+        <th>Primary Key</th>
+        <th>Foreign Keys</th>
+        <th>Key Columns & Data Types</th>
+        <th>Durability Role</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>conversations</code></td>
+        <td><code>id TEXT</code></td>
+        <td>None</td>
+        <td><code>title TEXT, model_id TEXT, status TEXT, created_at TEXT, updated_at TEXT</code></td>
+        <td>Root container for grouped mission sessions.</td>
+      </tr>
+      <tr>
+        <td><code>missions</code></td>
+        <td><code>id TEXT</code></td>
+        <td><code>conversation_id &rarr; conversations(id)</code></td>
+        <td><code>title TEXT, goal TEXT, status TEXT, duration_ms INTEGER, result_summary TEXT, started_at TEXT, completed_at TEXT</code></td>
+        <td>Top-level mission execution entity tracking full lifecycle.</td>
+      </tr>
+      <tr>
+        <td><code>mission_steps</code></td>
+        <td><code>id TEXT</code></td>
+        <td><code>mission_id &rarr; missions(id)</code></td>
+        <td><code>step_number INTEGER, title TEXT, phase TEXT, status TEXT, duration_ms INTEGER, result_text TEXT</code></td>
+        <td>Individual DAG nodes (Understand, Plan, Tools, Verify, Result).</td>
+      </tr>
+      <tr>
+        <td><code>tool_calls</code></td>
+        <td><code>id TEXT</code></td>
+        <td><code>step_id &rarr; mission_steps(id)</code></td>
+        <td><code>tool_name TEXT, arguments_json TEXT, result_json TEXT, status TEXT, latency_ms INTEGER</code></td>
+        <td>Immutable record of every MCP RPC call executed over port 3001.</td>
+      </tr>
+      <tr>
+        <td><code>calendar_events</code></td>
+        <td><code>id TEXT</code></td>
+        <td>None</td>
+        <td><code>title TEXT, start_time TEXT, end_time TEXT, platform TEXT, attendees TEXT, description TEXT, has_agenda INTEGER</code></td>
+        <td>Persistent calendar schedule queried by <code>calendar_get_events</code>.</td>
+      </tr>
+      <tr>
+        <td><code>documents</code></td>
+        <td><code>id TEXT</code></td>
+        <td>None</td>
+        <td><code>title TEXT, filename TEXT, file_type TEXT, category TEXT, page_count INTEGER, size_mb REAL, content TEXT</code></td>
+        <td>Original uploaded documents with metadata.</td>
+      </tr>
+      <tr>
+        <td><code>knowledge_chunks</code></td>
+        <td><code>id TEXT</code></td>
+        <td><code>document_id &rarr; documents(id)</code></td>
+        <td><code>chunk_index INTEGER, content TEXT, token_count INTEGER, created_at TEXT</code></td>
+        <td>Sliced text chunks queried by <code>knowledge_search</code> MCP tool.</td>
+      </tr>
+      <tr>
+        <td><code>activity_events</code></td>
+        <td><code>id TEXT</code></td>
+        <td><code>mission_id &rarr; missions(id)</code></td>
+        <td><code>event_type TEXT, category TEXT, severity TEXT, message TEXT, metadata_json TEXT, created_at TEXT</code></td>
+        <td>Chronological system audit timeline subscribed via SSE.</td>
+      </tr>
+      <tr>
+        <td><code>integration_configs</code></td>
+        <td><code>service_id TEXT</code></td>
+        <td>None</td>
+        <td><code>service_name TEXT, status TEXT, auth_type TEXT, config_json TEXT, updated_at TEXT</code></td>
+        <td>Stores credentials and Honest Capability Model statuses.</td>
       </tr>
     </tbody>
   </table>
 
   <!-- SECTION 4 -->
   <div class="page-break"></div>
-  <h2>4. Mini-Challenges Technical Breakdown</h2>
+  <h2>4. Application API & MCP RPC Interface Catalog</h2>
 
-  <h3>A. AWS Builder Track (Amazon Bedrock Converse Integration)</h3>
-  <ul>
-    <li><strong>SDK Installed:</strong> <code>@aws-sdk/client-bedrock-runtime</code> (v3.1154.0).</li>
-    <li><strong>Implementation Module:</strong> <code>src/agent/llm/bedrock.mjs</code>.</li>
-    <li><strong>Models Supported:</strong> <code>anthropic.claude-3-5-sonnet-20241022-v2:0</code> & <code>amazon.nova-pro-v1:0</code>.</li>
-    <li><strong>API Employed:</strong> AWS Bedrock <code>ConverseCommand</code> with structured <code>toolConfig.tools</code> and message block hierarchy.</li>
-    <li><strong>Zero-Crash Fallback:</strong> If AWS credentials are absent or offline, it safely defaults to the deterministic <code>AutonomousDecisionEngine</code>.</li>
-    <li><strong>Test Command:</strong> <code>npm run test:bedrock</code> (5 tests, 100% pass).</li>
-  </ul>
+  <table>
+    <thead>
+      <tr>
+        <th>Method & Route</th>
+        <th>Subsystem</th>
+        <th>Input Parameters / Payload</th>
+        <th>Output Response Schema</th>
+        <th>Error Codes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>GET /health</code></td>
+        <td>Application API</td>
+        <td>None</td>
+        <td><code>{ status: "ok", port: 3000, mcpStatus: "online" }</code></td>
+        <td>500 if backend down</td>
+      </tr>
+      <tr>
+        <td><code>POST /api/missions</code></td>
+        <td>Application API</td>
+        <td><code>{ goal: string, execution_mode: string, model: string, conversation_id?: string }</code></td>
+        <td><code>{ id: "msn_...", status: "CREATED", goal: "..." }</code></td>
+        <td>400 INVALID_GOAL</td>
+      </tr>
+      <tr>
+        <td><code>GET /api/missions</code></td>
+        <td>Application API</td>
+        <td><code>?limit=20&status=COMPLETED</code></td>
+        <td><code>{ total: number, missions: Array&lt;Mission&gt; }</code></td>
+        <td>500 DB_ERROR</td>
+      </tr>
+      <tr>
+        <td><code>GET /api/missions/:id</code></td>
+        <td>Application API</td>
+        <td>Path parameter: <code>id</code></td>
+        <td>Full mission object with joined <code>steps</code> and <code>tool_calls</code>.</td>
+        <td>404 MISSION_NOT_FOUND</td>
+      </tr>
+      <tr>
+        <td><code>POST /api/missions/:id/cancel</code></td>
+        <td>Application API</td>
+        <td>Path parameter: <code>id</code></td>
+        <td><code>{ id: string, status: "CANCELLED" }</code></td>
+        <td>404 NOT_FOUND, 409 COMPLETED</td>
+      </tr>
+      <tr>
+        <td><code>DELETE /api/missions/:id</code></td>
+        <td>Application API</td>
+        <td>Path parameter: <code>id</code></td>
+        <td><code>{ success: true, deletedId: string }</code></td>
+        <td>404 NOT_FOUND</td>
+      </tr>
+      <tr>
+        <td><code>GET /api/missions/:id/stream</code></td>
+        <td>Application API (SSE)</td>
+        <td>Header: <code>Last-Event-ID</code> (optional for reconnect)</td>
+        <td>Text stream: <code>event: step.started
+data: {...}
 
-  <h3>B. Open Source Track (<code>mcp-session-reaper</code>)</h3>
-  <ul>
-    <li><strong>Standalone Package Path:</strong> <code>packages/mcp-session-reaper/</code>.</li>
-    <li><strong>License:</strong> MIT License (standalone LICENSE file included).</li>
-    <li><strong>Problem Solved:</strong> Socket-aware scavenging for Streamable HTTP SSE connections in Node.js/Express, eliminating memory leaks when clients disconnect.</li>
-    <li><strong>Package Files:</strong> <code>package.json</code>, <code>index.js</code>, <code>LICENSE</code>, <code>README.md</code>, <code>test.js</code>.</li>
-    <li><strong>Test Command:</strong> <code>npm run test:reaper</code> (5 tests, 100% pass).</li>
-  </ul>
+</code></td>
+        <td>Replays buffered events</td>
+      </tr>
+      <tr>
+        <td><code>GET /api/tools</code></td>
+        <td>MCP Proxy</td>
+        <td>None</td>
+        <td><code>{ total: 4, tools: [ { name, description, inputSchema } ] }</code></td>
+        <td>503 MCP_UNREACHABLE</td>
+      </tr>
+      <tr>
+        <td><code>POST /api/tools/:name/call</code></td>
+        <td>MCP Proxy</td>
+        <td><code>{ arguments: { ... } }</code></td>
+        <td><code>{ content: [ { type: "text", text: "..." } ], latency_ms: 42 }</code></td>
+        <td>400 INVALID_ARGS, 404 NO_TOOL</td>
+      </tr>
+      <tr>
+        <td><code>POST /api/knowledge/upload</code></td>
+        <td>Knowledge API</td>
+        <td>Multipart <code>FormData</code>: <code>file</code></td>
+        <td><code>{ id: "doc-...", filename: "...", chunks: 6, size_mb: 2.1 }</code></td>
+        <td>400 UNSUPPORTED_TYPE</td>
+      </tr>
+      <tr>
+        <td><code>GET /api/activity</code></td>
+        <td>Activity API</td>
+        <td><code>?category=agent&severity=INFO</code></td>
+        <td><code>{ total: number, events: Array&lt;ActivityEvent&gt; }</code></td>
+        <td>500 DB_ERROR</td>
+      </tr>
+      <tr>
+        <td><code>GET /api/settings</code></td>
+        <td>Settings API</td>
+        <td>None</td>
+        <td>Profile, runtime parameters, mini-challenges telemetry (0 secrets).</td>
+        <td>500 DB_ERROR</td>
+      </tr>
+    </tbody>
+  </table>
 
   <!-- SECTION 5 -->
-  <h2>5. Prototype Screenshots & In-Depth Visual Verification Gallery</h2>
-  <p>The following figures document every major surface of the production prototype running on <code>localhost:5173</code>, backed by the self-hosted MCP server on <code>localhost:3001/mcp</code> and the Application API on <code>localhost:3000</code>.</p>
+  <div class="page-break"></div>
+  <h2>5. Prototype Screenshots & Visual Verification Gallery</h2>
+  <p>The 10 high-resolution figures below document every major surface of the production application running on <code>localhost:5173</code>.</p>
 
-  <!-- FIGURE 1 -->
   <div class="screenshot-card">
     <img src="screenshots/home_updated.png" alt="Home Page & Capability Launchpad">
     <div class="screenshot-caption">Figure 1: Home Page & Capability Launchpad (with Live Hackathon Mini-Challenges Badges)</div>
     <div class="screenshot-details">
-      <p><strong>Route & Component:</strong> <code>/home</code> &mdash; <code>src/web/pages/NewConversationPage.tsx</code></p>
-      <p><strong>Visual Elements Present in Screenshot:</strong></p>
-      <ul>
-        <li><strong>Header Branding:</strong> Official Amazon wordmark with golden smile curve, <code>Alexa+</code> bold typography, solid blue <code>BETA</code> pill, and the newly added <code>AWS Bedrock</code> status badge.</li>
-        <li><strong>Global Omnibox:</strong> Universal search input (<code>⌘K</code>) routing to knowledge discovery and tool queries.</li>
-        <li><strong>Mini-Challenges Live Badges:</strong> Dual status chips prominently mounted below the hero title:
-          <code>AWS Builder: Bedrock Converse Active</code> (amber) and <code>Open Source: mcp-session-reaper (MIT)</code> (emerald).</li>
-        <li><strong>Quick-Start Cards Grid:</strong> 6 task presets with icon accents (Schedule Briefing, Cross-Doc Synthesis, Technical Spike, Email Draft, Code Review, Competitive Analysis).</li>
-        <li><strong>Prompt Composer:</strong> Multiline natural-language input field with paperclip document attachment trigger, speech recognition mic, execution mode pill, and primary dispatch button.</li>
-      </ul>
-      <p><strong>Underlying Architecture:</strong> Forms the dispatch gateway for <code>POST /api/missions</code>. Document attachments are processed by <code>/api/knowledge/upload</code> and indexed into SQLite chunks.</p>
+      <strong>Route:</strong> <code>/home</code> &bull; <strong>Component:</strong> <code>NewConversationPage.tsx</code><br>
+      <strong>Visible UI:</strong> Amazon wordmark with smile, <code>Alexa+</code> logo, <code>BETA</code> pill, <code>AWS Bedrock</code> header badge, ⌘K search bar, live mini-challenge status chips (AWS Builder Bedrock Active & Open Source Reaper MIT), 6 quick-start capability cards, multiline prompt composer, document attachment paperclip, voice microphone.
     </div>
   </div>
 
   <div class="page-break"></div>
 
-  <!-- FIGURE 2 -->
   <div class="screenshot-card">
     <img src="screenshots/popover.png" alt="Execution Modes Popover">
-    <div class="screenshot-caption">Figure 2: ChatGPT-Style Execution Modes Popover</div>
+    <div class="screenshot-caption">Figure 2: ChatGPT-Style Execution Modes Popover (Quick, Deep Research, Autonomous, Build)</div>
     <div class="screenshot-details">
-      <p><strong>Route & Component:</strong> Popover overlay on <code>/home</code> &mdash; <code>src/web/pages/NewConversationPage.tsx</code></p>
-      <p><strong>Visual Elements Present in Screenshot:</strong></p>
-      <ul>
-        <li><strong>Floating Popover:</strong> Upwards-opening floating panel anchored directly to the composer's mode pill, styled with glassmorphism border and drop shadow.</li>
-        <li><strong>4 Discrete Execution Modes:</strong>
-          <ul>
-            <li><em>Quick Response:</em> Rapid single-turn direct inference for immediate answers.</li>
-            <li><em>Deep Research:</em> Multi-step synthesis across connected knowledge bases and external documents.</li>
-            <li><em>Autonomous Agent:</em> Full multi-phase DAG orchestrator with real-time MCP tool invocations and live SSE streaming.</li>
-            <li><em>Code & Build:</em> Technical debugging and syntax validation workflow.</li>
-          </ul>
-        </li>
-        <li><strong>Active State:</strong> Dedicated checkmark badge indicating currently selected execution strategy.</li>
-      </ul>
-      <p><strong>Underlying Architecture:</strong> Passed as <code>execution_mode</code> to <code>AgentOrchestrator.mjs</code>, configuring step limits, tool allowance budgets, and fallback policies.</p>
+      <strong>Route:</strong> Floating overlay on <code>/home</code> &bull; <strong>Component:</strong> <code>NewConversationPage.tsx</code><br>
+      <strong>Visible UI:</strong> Upwards-opening glassmorphism popover anchored to composer mode pill. Shows Quick Response, Deep Research, Autonomous Agent, and Code & Build modes with active checkmarks.
     </div>
   </div>
 
   <div class="page-break"></div>
 
-  <!-- FIGURE 3 -->
   <div class="screenshot-card">
     <img src="screenshots/missions_active.png" alt="Autonomous Missions Workspace">
     <div class="screenshot-caption">Figure 3: Autonomous Missions Workspace & Multi-Step Execution DAG</div>
     <div class="screenshot-details">
-      <p><strong>Route & Component:</strong> <code>/missions</code> &mdash; <code>src/web/pages/MissionWorkspacePage.tsx</code></p>
-      <p><strong>Visual Elements Present in Screenshot:</strong></p>
-      <ul>
-        <li><strong>Mission Navigation Sidebar:</strong> Chronological mission list displaying titles, execution status badges (<code>COMPLETED</code>, <code>RUNNING</code>, <code>FAILED</code>), and timestamps.</li>
-        <li><strong>5-Phase Autonomous DAG:</strong> Visual workflow timeline tracking <code>UNDERSTAND</code> &rarr; <code>PLAN</code> &rarr; <code>TOOLS</code> &rarr; <code>VERIFY</code> &rarr; <code>RESULT</code>.</li>
-        <li><strong>Active Execution Stepper:</strong> Step card with title, execution duration, and tool execution status badges.</li>
-        <li><strong>Mission Actions Dropdown:</strong> Header three-vertical-dots menu providing Copy Mission ID, Copy Goal Text, Re-run Mission, and Delete Mission.</li>
-      </ul>
-      <p><strong>Underlying Architecture:</strong> Live state subscribed via SSE on <code>GET /api/missions/:id/stream</code> with automatic resumption via <code>Last-Event-ID</code>. Durable storage in SQLite <code>missions</code> and <code>mission_steps</code> tables.</p>
+      <strong>Route:</strong> <code>/missions/:id</code> &bull; <strong>Component:</strong> <code>MissionWorkspacePage.tsx</code><br>
+      <strong>Visible UI:</strong> Mission sidebar with status badges, visual 5-phase DAG stepper (<code>UNDERSTAND</code> &rarr; <code>PLAN</code> &rarr; <code>TOOLS</code> &rarr; <code>VERIFY</code> &rarr; <code>RESULT</code>), active step card with duration, tool call accordion with JSON payloads, three-dots actions menu.
     </div>
   </div>
 
   <div class="page-break"></div>
 
-  <!-- FIGURE 4 -->
   <div class="screenshot-card">
     <img src="screenshots/tools.png" alt="Self-Hosted MCP Tools Catalog">
     <div class="screenshot-caption">Figure 4: Self-Hosted MCP Tools Catalog & Discovery Interface</div>
     <div class="screenshot-details">
-      <p><strong>Route & Component:</strong> <code>/tools</code> &mdash; <code>src/web/pages/ToolsPage.tsx</code></p>
-      <p><strong>Visual Elements Present in Screenshot:</strong></p>
-      <ul>
-        <li><strong>MCP Server Telemetry Card:</strong> Endpoint URL (<code>http://127.0.0.1:3001/mcp</code>), protocol spec (<code>2025-11-25 Streamable HTTP</code>), and count of registered MCP tools (4).</li>
-        <li><strong>Tool Registry Cards:</strong>
-          <ul>
-            <li><code>calendar_get_events</code> &mdash; Queries connected calendar schedules within a date range.</li>
-            <li><code>knowledge_search</code> &mdash; Full-text semantic search over SQLite indexed knowledge chunks.</li>
-            <li><code>document_analyze</code> &mdash; Deep parsing and fact extraction from attached documents.</li>
-            <li><code>ping</code> &mdash; Transport heartbeat and latency roundtrip probe.</li>
-          </ul>
-        </li>
-        <li><strong>Tool Schema Badges:</strong> Required and optional input parameter definitions rendered directly from the tool's JSON Schema.</li>
-        <li><strong>Interactive Action:</strong> "Run Tool" test button triggering the live execution modal.</li>
-      </ul>
-      <p><strong>Underlying Architecture:</strong> Discovered in real-time via <code>@modelcontextprotocol/sdk</code> client calling <code>tools/list</code> over HTTP SSE transport.</p>
+      <strong>Route:</strong> <code>/tools</code> &bull; <strong>Component:</strong> <code>ToolsPage.tsx</code><br>
+      <strong>Visible UI:</strong> MCP Server health banner (<code>:3001/mcp</code>, Streamable HTTP, 4 registered tools), tool cards for <code>calendar_get_events</code>, <code>knowledge_search</code>, <code>document_analyze</code>, <code>ping</code>, parameter schema badges, "Run Tool" test button.
     </div>
   </div>
 
   <div class="page-break"></div>
 
-  <!-- FIGURE 5 -->
   <div class="screenshot-card">
     <img src="screenshots/tool_runner.png" alt="Interactive MCP Tool Runner Modal">
     <div class="screenshot-caption">Figure 5: Interactive MCP Tool Runner Modal with Editable JSON Arguments</div>
     <div class="screenshot-details">
-      <p><strong>Route & Component:</strong> Modal on <code>/tools</code> &mdash; <code>src/web/pages/ToolsPage.tsx</code> / <code>ToolRunnerModal.tsx</code></p>
-      <p><strong>Visual Elements Present in Screenshot:</strong></p>
-      <ul>
-        <li><strong>Header:</strong> Target tool name (<code>calendar_get_events</code>) and endpoint identifier.</li>
-        <li><strong>Parameter Description:</strong> Tool documentation explaining input requirements and types.</li>
-        <li><strong>Editable JSON Code Editor:</strong> Syntax-highlighted code block pre-populated with valid default JSON arguments (<code>{ "daysAhead": 3, "includeAttendees": true }</code>).</li>
-        <li><strong>Action Controls:</strong> "Cancel" button and primary "Execute Tool via MCP" button with real-time input validation.</li>
-      </ul>
-      <p><strong>Underlying Architecture:</strong> Validates input against JSON Schema before invoking <code>tools/call</code> directly over the active Streamable HTTP connection.</p>
+      <strong>Route:</strong> Modal on <code>/tools</code> &bull; <strong>Component:</strong> <code>ToolRunnerModal.tsx</code><br>
+      <strong>Visible UI:</strong> Parameter configuration dialog with JSON parameter schema, pre-filled editable code block (e.g. <code>{"daysAhead": 3, "includeAttendees": true}</code>), syntax validator, Execute button.
     </div>
   </div>
 
   <div class="page-break"></div>
 
-  <!-- FIGURE 6 -->
   <div class="screenshot-card">
     <img src="screenshots/tool_result.png" alt="Live MCP Tool Execution Terminal">
     <div class="screenshot-caption">Figure 6: Live MCP Tool Execution Terminal Output with Millisecond Latency</div>
     <div class="screenshot-details">
-      <p><strong>Route & Component:</strong> Result drawer on <code>/tools</code> &mdash; <code>src/web/pages/ToolsPage.tsx</code></p>
-      <p><strong>Visual Elements Present in Screenshot:</strong></p>
-      <ul>
-        <li><strong>Execution Telemetry:</strong> Roundtrip latency indicator (<code>42ms</code>) and protocol badge (<code>Streamable HTTP 200 OK</code>).</li>
-        <li><strong>Monospace JSON Terminal:</strong> Clean formatted JSON response payload displaying retrieved calendar events, attendee emails, start/end ISO timestamps, and meeting room allocations.</li>
-        <li><strong>Copy Payload Button:</strong> Quick action to copy raw JSON output to clipboard.</li>
-      </ul>
-      <p><strong>Underlying Architecture:</strong> Raw MCP RPC response received from `McpServer.mjs` on port 3001, recorded to SQLite activity timeline and rendered in the frontend.</p>
+      <strong>Route:</strong> Result drawer on <code>/tools</code> &bull; <strong>Component:</strong> <code>ToolsPage.tsx</code><br>
+      <strong>Visible UI:</strong> Monospace terminal displaying roundtrip execution latency (<code>42ms</code>), <code>200 OK</code> status badge, formatted calendar JSON return payload, Copy to Clipboard button.
     </div>
   </div>
 
   <div class="page-break"></div>
 
-  <!-- FIGURE 7 -->
   <div class="screenshot-card">
     <img src="screenshots/knowledge.png" alt="Connected Knowledge Base">
     <div class="screenshot-caption">Figure 7: Connected Knowledge Base & Semantic Document Search</div>
     <div class="screenshot-details">
-      <p><strong>Route & Component:</strong> <code>/knowledge</code> &mdash; <code>src/web/pages/KnowledgePage.tsx</code></p>
-      <p><strong>Visual Elements Present in Screenshot:</strong></p>
-      <ul>
-        <li><strong>Search Omnibox:</strong> Live search input testing full-text and semantic queries against indexed documents.</li>
-        <li><strong>Document Repository Table:</strong> List of indexed files (e.g. <code>Q3_Strategy_Deck.pdf</code>, <code>Architecture_Spec.md</code>) showing file sizes, chunk counts, and indexing timestamps.</li>
-        <li><strong>MCP Search Test Widget:</strong> Live test console allowing direct queries to the <code>knowledge_search</code> MCP tool with highlighted text snippets.</li>
-      </ul>
-      <p><strong>Underlying Architecture:</strong> SQLite `knowledge_documents` and `knowledge_chunks` tables with token counting and vector-ready chunk slicing.</p>
+      <strong>Route:</strong> <code>/knowledge</code> &bull; <strong>Component:</strong> <code>KnowledgePage.tsx</code><br>
+      <strong>Visible UI:</strong> Full-text keyword search input, document catalog table with file sizes and chunk counts, real-time MCP search testing console with chunk relevance scores.
     </div>
   </div>
 
   <div class="page-break"></div>
 
-  <!-- FIGURE 8 -->
   <div class="screenshot-card">
     <img src="screenshots/integrations.png" alt="Honest Integrations Capability Matrix">
     <div class="screenshot-caption">Figure 8: Honest Integrations Capability Matrix & Capability Model</div>
     <div class="screenshot-details">
-      <p><strong>Route & Component:</strong> <code>/integrations</code> &mdash; <code>src/web/pages/IntegrationsPage.tsx</code></p>
-      <p><strong>Visual Elements Present in Screenshot:</strong></p>
-      <ul>
-        <li><strong>Category Filters:</strong> Filter pills for All, Productivity, Developer Tools, and Communication.</li>
-        <li><strong>Honest Capability Status Badges:</strong> Unambiguous distinction between <code>CONNECTED</code> (genuine local MCP SQLite storage) and <code>DEMO CAPABILITY</code> (simulated capability with no fake live OAuth claims).</li>
-        <li><strong>User Identity:</strong> Explicit configuration displaying authenticated developer email (<code>shanmukheswaramedicharla@gmail.com</code>).</li>
-        <li><strong>Configure Modal:</strong> Interactive credential modal allowing local testing and configuration.</li>
-      </ul>
-      <p><strong>Underlying Architecture:</strong> Enforces the strict Honest Capability Model audited in Stage 5, ensuring zero deceptive claims are made to hackathon judges.</p>
+      <strong>Route:</strong> <code>/integrations</code> &bull; <strong>Component:</strong> <code>IntegrationsPage.tsx</code><br>
+      <strong>Visible UI:</strong> Category filter tabs, developer identity (<code>shanmukheswaramedicharla@gmail.com</code>), honest capability status badges (<code>CONNECTED</code> for local MCP data, <code>DEMO CAPABILITY</code> for simulated), credential modal.
     </div>
   </div>
 
   <div class="page-break"></div>
 
-  <!-- FIGURE 9 -->
   <div class="screenshot-card">
     <img src="screenshots/activity.png" alt="Activity Timeline & Audit Store">
     <div class="screenshot-caption">Figure 9: Activity Timeline & Real-Time Event Audit Store</div>
     <div class="screenshot-details">
-      <p><strong>Route & Component:</strong> <code>/activity</code> &mdash; <code>src/web/pages/ActivityPage.tsx</code></p>
-      <p><strong>Visual Elements Present in Screenshot:</strong></p>
-      <ul>
-        <li><strong>Telemetry Filter Tabs:</strong> Filter by All Events, Agent Decisions, Tool Calls, System Notifications, and Errors.</li>
-        <li><strong>Chronological Event Stream:</strong> Timestamped audit logs displaying event types (<code>mission.created</code>, <code>tool.invoked</code>, <code>step.completed</code>, <code>mission.completed</code>).</li>
-        <li><strong>Metadata Accordion:</strong> Expandable JSON payloads showing execution durations, caller origins, and database row IDs.</li>
-      </ul>
-      <p><strong>Underlying Architecture:</strong> Backed by SQLite <code>activity_events</code> table, populated synchronously by the orchestrator and API server for complete post-execution auditability.</p>
+      <strong>Route:</strong> <code>/activity</code> &bull; <strong>Component:</strong> <code>ActivityPage.tsx</code><br>
+      <strong>Visible UI:</strong> Severity & category tabs (All, Decisions, Tool Calls, Errors), chronological timestamped audit logs, expandable JSON metadata accordions, export audit logs button.
     </div>
   </div>
 
   <div class="page-break"></div>
 
-  <!-- FIGURE 10 -->
   <div class="screenshot-card">
     <img src="screenshots/settings_updated.png" alt="Runtime Settings & Hackathon Mini-Challenges">
     <div class="screenshot-caption">Figure 10: Runtime Settings & Hackathon Mini-Challenges Live Verification</div>
     <div class="screenshot-details">
-      <p><strong>Route & Component:</strong> <code>/settings</code> &mdash; <code>src/web/pages/SettingsPage.tsx</code></p>
-      <p><strong>Visual Elements Present in Screenshot:</strong></p>
-      <ul>
-        <li><strong>Developer Profile Card:</strong> Name: Shanmukheswara Medicharla, Email: <code>shanmukheswaramedicharla@gmail.com</code>, Role: Lead Architect.</li>
-        <li><strong>Runtime Configuration Card:</strong> Decision Engine: Autonomous Rule-Based Engine (Deterministic), Database: SQLite (<code>data/alexa_plus.db</code>), MCP Transport: Streamable HTTP (<code>:3001/mcp</code>).</li>
-        <li><strong>Hackathon Mini-Challenges Integration Card:</strong>
-          <ul>
-            <li><strong>AWS Builder Track:</strong> Amazon Bedrock Converse API, <code>@aws-sdk/client-bedrock-runtime</code> (v3.1154.0), Claude 3.5 Sonnet & Nova Pro, 100% test pass.</li>
-            <li><strong>Open Source Track:</strong> <code>mcp-session-reaper</code> (MIT License), standalone package at <code>packages/mcp-session-reaper/</code>, 100% test pass.</li>
-          </ul>
-        </li>
-      </ul>
-      <p><strong>Underlying Architecture:</strong> Telemetry served from <code>GET /api/settings</code>. Zero secrets or API keys exposed in API responses (audited in Stage 6 & 7).</p>
+      <strong>Route:</strong> <code>/settings</code> &bull; <strong>Component:</strong> <code>SettingsPage.tsx</code><br>
+      <strong>Visible UI:</strong> Developer profile card, runtime configuration telemetry, Hackathon Mini-Challenges card (AWS Builder Bedrock Converse & Open Source Reaper MIT), API key input forms, reset system button.
     </div>
   </div>
 
   <!-- SECTION 6 -->
   <div class="page-break"></div>
   <h2>6. Comprehensive UI Option-by-Option Master Audit & Troubleshooting Guide</h2>
-  <p>This master guide explicitly audits every interactive element, button, modal, dropdown, and control across the entire prototype. Every single feature is categorized with its operational status, architectural grounding, failure modes (if any), and exact step-by-step fix blueprint for subsequent polish.</p>
+  <p>This master guide explicitly audits every single interactive element, button, modal, dropdown, and control across all 10 major surfaces of the prototype. Every option is classified as <strong>WORKING</strong>, <strong>PARTIAL</strong>, or <strong>SIMULATED</strong> with underlying code grounding and exact fix blueprints for your next session.</p>
 
-  <div style="display: flex; gap: 12px; margin: 12px 0 16px 0;">
-    <div style="flex: 1; padding: 10px 14px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px;">
-      <div style="font-size: 14pt; font-weight: 700; color: #047857;">41 / 45 (91.1%)</div>
-      <div style="font-size: 9pt; font-weight: 600; color: #065f46;">✅ FULLY WORKING</div>
-      <div style="font-size: 8pt; color: #047857;">Zero mock data; fully backed by SQLite, MCP, or local API.</div>
+  <div style="display: flex; gap: 10px; margin: 10px 0 14px 0;">
+    <div style="flex: 1; padding: 8px 12px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 4px;">
+      <div style="font-size: 13pt; font-weight: 700; color: #047857;">41 / 45 (91.1%)</div>
+      <div style="font-size: 8.5pt; font-weight: 600; color: #065f46;">✅ FULLY WORKING</div>
+      <div style="font-size: 7.5pt; color: #047857;">Real SQLite persistence, live MCP Streamable HTTP, active SSE.</div>
     </div>
-    <div style="flex: 1; padding: 10px 14px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px;">
-      <div style="font-size: 14pt; font-weight: 700; color: #b45309;">2 / 45 (4.4%)</div>
-      <div style="font-size: 9pt; font-weight: 600; color: #92400e;">⚠️ PARTIAL / BROWSER-DEPENDENT</div>
-      <div style="font-size: 8pt; color: #b45309;">Requires specific browser APIs (Web Speech API) or lacks modal dialog.</div>
+    <div style="flex: 1; padding: 8px 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 4px;">
+      <div style="font-size: 13pt; font-weight: 700; color: #b45309;">2 / 45 (4.4%)</div>
+      <div style="font-size: 8.5pt; font-weight: 600; color: #92400e;">⚠️ PARTIAL / BROWSER-DEPENDENT</div>
+      <div style="font-size: 7.5pt; color: #b45309;">Requires specific browser APIs (Web Speech) or lacks safety modal.</div>
     </div>
-    <div style="flex: 1; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px;">
-      <div style="font-size: 14pt; font-weight: 700; color: #b91c1c;">2 / 45 (4.4%)</div>
-      <div style="font-size: 9pt; font-weight: 600; color: #991b1b;">❌ SIMULATED / OFFLINE MODE</div>
-      <div style="font-size: 8pt; color: #b91c1c;">Simulated for safe offline evaluation; honest capability badges shown.</div>
+    <div style="flex: 1; padding: 8px 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px;">
+      <div style="font-size: 13pt; font-weight: 700; color: #b91c1c;">2 / 45 (4.4%)</div>
+      <div style="font-size: 8.5pt; font-weight: 600; color: #991b1b;">❌ SIMULATED / OFFLINE MODE</div>
+      <div style="font-size: 7.5pt; color: #b91c1c;">Inactive external cloud OAuth for offline hackathon reproducibility.</div>
     </div>
   </div>
 
   <!-- 6.1 GLOBAL HEADER -->
-  <h3>6.1 Global Header & Top Navigation Bar</h3>
+  <h3>6.1 Global Header & Navigation Bar</h3>
   <table>
     <thead>
       <tr>
@@ -565,7 +673,7 @@
     <tbody>
       <tr>
         <td>
-          <strong>Mobile Menu Hamburger Button</strong><br>
+          <strong>Mobile Hamburger Button</strong><br>
           <code style="font-size: 8pt;">Header.tsx &bull; &lt;Menu /&gt;</code><br>
           <span class="badge badge-green" style="margin-top: 4px;">✅ WORKING</span>
         </td>
@@ -1365,8 +1473,10 @@ Total Test Suites: 16 | Passed: 16 (100%) | Failed: 0
   <h3>⏳ What is Left Over / Next Polishing Steps for the Next Conversation</h3>
   <ul>
     <li><strong>Demo Video Recording:</strong> Follow the exact 2m45s script in <code>docs/devpost-submission-package.md</code> using screen capture.</li>
+    <li><strong>Notification Bell Dynamic Badge:</strong> Add numerical unread counter badge hooked to SSE <code>mission.completed</code>.</li>
+    <li><strong>Delete Mission Confirmation Modal:</strong> Add safety confirmation dialog to prevent accidental deletion.</li>
+    <li><strong>Speech Recognition MediaRecorder Fallback:</strong> Add audio blob recording fallback for non-Chromium browsers.</li>
     <li><strong>Live Third-Party OAuth:</strong> Replace local SQLite calendar/drive datasets with real Google Cloud Console OAuth 2.0 client IDs if live external sync is desired.</li>
-    <li><strong>Audio Playback Synthesis:</strong> Add Web Speech TTS (Text-to-Speech) so the agent can read aloud final mission results.</li>
     <li><strong>Dedicated Standalone Repo for Reaper:</strong> Push <code>packages/mcp-session-reaper</code> to a separate standalone GitHub repository (optional for the Open Source track).</li>
   </ul>
 
