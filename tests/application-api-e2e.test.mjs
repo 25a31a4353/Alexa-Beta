@@ -10,10 +10,20 @@ async function runApplicationApiE2ETest() {
   console.log('PHASE 2: APPLICATION API + REAL-TIME SSE END-TO-END VERIFICATION');
   console.log('========================================================================');
 
-  // Start Application API HTTP Server on port 3000
-  const apiServer = http.createServer(app);
-  await new Promise((resolve) => apiServer.listen(API_PORT, '127.0.0.1', resolve));
-  console.log(`[PASS] Application API Server listening on http://127.0.0.1:${API_PORT}`);
+  let apiServer = null;
+  let alreadyRunning = false;
+  try {
+    const healthCheck = await fetch(`http://127.0.0.1:${API_PORT}/health`);
+    if (healthCheck.ok) alreadyRunning = true;
+  } catch {}
+
+  if (!alreadyRunning) {
+    apiServer = http.createServer(app);
+    await new Promise((resolve) => apiServer.listen(API_PORT, '127.0.0.1', resolve));
+    console.log(`[PASS] Application API Server listening on http://127.0.0.1:${API_PORT}`);
+  } else {
+    console.log(`[PASS] Application API Server already running on http://127.0.0.1:${API_PORT}`);
+  }
 
   const baseUrl = `http://127.0.0.1:${API_PORT}`;
 
@@ -253,13 +263,17 @@ async function runApplicationApiE2ETest() {
     }
 
     // Clean shutdown
-    await new Promise((resolve) => apiServer.close(resolve));
+    if (apiServer) {
+      await new Promise((resolve) => apiServer.close(resolve));
+    }
     console.log('\n========================================================================');
     console.log('ALL APPLICATION API & REAL-TIME SSE TESTS PASSED (100%)');
     console.log('========================================================================');
   } catch (err) {
     console.error('\n[APPLICATION API TEST ERROR]:', err);
-    try { apiServer.close(); } catch {}
+    if (apiServer) {
+      try { apiServer.close(); } catch {}
+    }
     process.exit(1);
   }
 }

@@ -25,11 +25,18 @@ export function subscribeToMissionStream({
 
   const handleMessage = (e: MessageEvent) => {
     try {
-      const data: ActivityEvent = JSON.parse(e.data);
+      const raw = JSON.parse(e.data);
+      const data: ActivityEvent = {
+        ...raw,
+        id: raw.id || e.lastEventId,
+        event_type: raw.event_type || raw.eventType,
+        mission_id: raw.mission_id || raw.missionId,
+        conversation_id: raw.conversation_id || raw.conversationId,
+        created_at: raw.created_at || raw.timestamp || new Date().toISOString()
+      };
       onEvent(data);
 
-      if (data.event_type === 'mission.completed' || data.event_type === 'mission.failed' ||
-          (data as any).eventType === 'mission.completed' || (data as any).eventType === 'mission.failed') {
+      if (data.event_type === 'mission.completed' || data.event_type === 'mission.failed') {
         if (onComplete) onComplete();
         cleanup();
       }

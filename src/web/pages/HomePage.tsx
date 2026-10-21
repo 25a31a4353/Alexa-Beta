@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   FileText,
   Calendar,
@@ -7,6 +7,7 @@ import {
   Sparkles,
   ArrowUp,
   Mic,
+  MicOff,
   Plus,
   Globe,
   ChevronDown,
@@ -15,9 +16,15 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
+  X,
+  Paperclip,
+  Zap,
+  Search,
+  Wrench,
+  Check
 } from 'lucide-react';
 import { AmazonSmileArrow, PlanetaryHorizon } from '../components/ui/AmazonBranding';
-import { createMission } from '../api/client';
+import { createMission, uploadKnowledgeDocument } from '../api/client';
 import { useRouter } from '../state/router';
 import { cn } from '../lib/utils';
 
@@ -30,6 +37,59 @@ interface UseCaseCard {
   description: string;
   prompt: string;
 }
+
+interface AttachedDoc {
+  id: string;
+  name: string;
+  size: string;
+  content: string;
+}
+
+export type ExecutionMode = 'quick' | 'deep' | 'autonomous' | 'build';
+
+interface ModeOption {
+  id: ExecutionMode;
+  name: string;
+  tagline: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+}
+
+const EXECUTION_MODES: ModeOption[] = [
+  {
+    id: 'quick',
+    name: 'Quick',
+    tagline: 'Fast direct query',
+    description: 'Rapid single-shot response using targeted tool retrieval.',
+    icon: Zap,
+    color: 'text-amber-500'
+  },
+  {
+    id: 'deep',
+    name: 'Deep Research',
+    tagline: 'Exhaustive document analysis',
+    description: 'Multi-step document inspection, anomaly detection, and deep synthesis.',
+    icon: Search,
+    color: 'text-blue-500'
+  },
+  {
+    id: 'autonomous',
+    name: 'Autonomous',
+    tagline: 'Full DAG planning & MCP tools',
+    description: 'Full multi-step DAG planning loop with self-correcting MCP tools.',
+    icon: Sparkles,
+    color: 'text-purple-500'
+  },
+  {
+    id: 'build',
+    name: 'Build',
+    tagline: 'Specs & action checklist',
+    description: 'Technical requirements breakdown, specifications, and action plans.',
+    icon: Wrench,
+    color: 'text-emerald-500'
+  }
+];
 
 const CAPABILITY_PILLS = [
   { id: 'docs', label: 'Analyze documents', icon: FileText, samplePrompt: 'Analyze available roadmap and strategic documents, identify key milestones, risks, and extract clear action items.' },
@@ -83,27 +143,138 @@ export const HomePage: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [researchMode, setResearchMode] = useState<'deep' | 'standard'>('deep');
+  const [executionMode, setExecutionMode] = useState<ExecutionMode>('deep');
+  const [isModeOpen, setIsModeOpen] = useState(false);
   const [webEnabled, setWebEnabled] = useState(true);
+  const [attachedDocs, setAttachedDocs] = useState<AttachedDoc[]>([]);
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // Document attachment handler (ChatGPT-style + button)
+  const handleFileClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingDoc(true);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const text = await file.text();
+        const docId = `doc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+        const sizeFormatted = file.size < 1024 * 1024
+          ? `${(file.size / 1024).toFixed(1)} KB`
+          : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+
+        // Automatically index into SQLite Knowledge Base
+        await uploadKnowledgeDocument({
+          title: file.name.replace(/\.[^/.]+$/, ''),
+          filename: file.name,
+          fileType: file.name.split('.').pop()?.toUpperCase() || 'TXT',
+          category: 'Uploaded',
+          content: text || `Uploaded file ${file.name}`,
+          summary: `User-attached file: ${file.name} (${sizeFormatted})`
+        });
+
+        setAttachedDocs(prev => [
+          ...prev,
+          { id: docId, name: file.name, size: sizeFormatted, content: text }
+        ]);
+      } catch (err: any) {
+        console.error('[HomePage] File upload failed:', err);
+      }
+    }
+    setIsUploadingDoc(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeAttachedDoc = (id: string) => {
+    setAttachedDocs(prev => prev.filter(d => d.id !== id));
+  };
+
+  // Real-time Speech-to-Text via Web Speech API (Microphone)
+  const toggleSpeechRecognition = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        let currentTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          currentTranscript += event.results[i][0].transcript;
+        }
+        if (currentTranscript.trim()) {
+          setPrompt(prev => prev ? `${prev} ${currentTranscript.trim()}` : currentTranscript.trim());
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('[Speech Recognition Error]:', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('[Speech Recognition Start Error]:', err);
+      setIsListening(false);
+    }
+  };
 
   // Submit mission to real Application API
   const handleLaunchMission = async (goalText?: string) => {
     const textToSubmit = (goalText || prompt).trim();
     if (!textToSubmit || isSubmitting) return;
 
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    }
+
     setIsSubmitting(true);
     setErrorMessage(null);
 
     try {
-      // POST /api/missions with real goal
+      const docIds = attachedDocs.map(d => d.name);
       const res = await createMission({
         goal: textToSubmit,
         title: textToSubmit.length > 40 ? `${textToSubmit.substring(0, 40)}...` : textToSubmit,
         sync: false,
+        executionMode,
+        webEnabled,
+        attachedDocuments: docIds
       });
 
       if (res && res.mission && res.mission.id) {
-        // Successfully created persistent mission in SQLite -> Navigate to live workspace
         navigate(`/missions/${res.mission.id}`);
       } else {
         throw new Error('Mission created but missing valid ID.');
@@ -132,13 +303,26 @@ export const HomePage: React.FC = () => {
     setPrompt(card.prompt);
   };
 
+  const currentModeMeta = EXECUTION_MODES.find(m => m.id === executionMode) || EXECUTION_MODES[1];
+  const CurrentModeIcon = currentModeMeta.icon;
+
   return (
     <div className="relative min-h-full flex flex-col justify-between px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-6xl mx-auto select-none overflow-hidden">
+      {/* Hidden file attachment input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        multiple
+        className="hidden"
+        accept=".pdf,.docx,.txt,.md,.json,.csv,.xlsx"
+      />
+
       {/* Cinematic Planetary Horizon Atmosphere */}
       <PlanetaryHorizon />
 
       {/* 1. HERO TOP SECTION */}
-      <div className="relative z-10 flex flex-col items-center text-center max-w-3xl mx-auto pt-2 sm:pt-4">
+      <div className="relative z-10 flex flex-col items-center text-center max-w-4xl mx-auto pt-2 sm:pt-4">
         {/* Amazon Alexa+ Product Track Sub-badge */}
         <div className="text-[11px] font-semibold tracking-[0.25em] text-slate-400 uppercase mb-3">
           Amazon Alexa+
@@ -156,8 +340,8 @@ export const HomePage: React.FC = () => {
           <br className="hidden sm:inline" /> take actions, and keep you updated.
         </p>
 
-        {/* Capability Pills Row */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2 max-w-3xl">
+        {/* Capability Pills Row - Sleek Single Row on Desktop */}
+        <div className="mt-5 mb-3 flex items-center justify-center gap-2 max-w-4xl mx-auto px-2">
           {CAPABILITY_PILLS.map((pill) => {
             const Icon = pill.icon;
             return (
@@ -165,22 +349,22 @@ export const HomePage: React.FC = () => {
                 key={pill.id}
                 onClick={() => handlePillClick(pill.samplePrompt)}
                 className={cn(
-                  'px-4 py-2 rounded-full text-xs font-normal transition-all duration-150',
-                  'bg-[#101726]/75 border border-[#233354] text-slate-200 backdrop-blur-md',
+                  'px-3 py-1.5 rounded-full text-[11.5px] font-medium transition-all duration-150',
+                  'bg-[#101726]/85 border border-[#233354] text-slate-200 backdrop-blur-md',
                   'hover:bg-[#18233C] hover:text-white hover:border-slate-500',
-                  'flex items-center space-x-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
+                  'flex items-center space-x-2 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-sm flex-shrink-0'
                 )}
                 title="Click to load prompt template"
               >
                 <Icon className="w-3.5 h-3.5 text-slate-300" />
-                <span>{pill.label}</span>
+                <span className="whitespace-nowrap">{pill.label}</span>
               </button>
             );
           })}
         </div>
 
         {/* The Iconic Glowing Amazon Smile Arrow hovering above horizon dawn */}
-        <div className="mt-4 mb-1 flex items-center justify-center w-full">
+        <div className="mt-4 mb-2 flex items-center justify-center w-full">
           <AmazonSmileArrow width={175} />
         </div>
       </div>
@@ -189,10 +373,35 @@ export const HomePage: React.FC = () => {
       <div className="relative z-10 w-full max-w-3xl mx-auto mt-1">
         <div
           className={cn(
-            'bg-white rounded-[22px] p-4 sm:p-5 shadow-2xl transition-all duration-200 border border-white/20',
+            'bg-white rounded-[22px] p-4 sm:p-5 shadow-2xl transition-all duration-200 border border-slate-200/60',
+            'focus-within:ring-2 focus-within:ring-blue-400/20 focus-within:border-blue-300',
             isSubmitting && 'opacity-85 pointer-events-none'
           )}
         >
+          {/* Attached Document Chips (ChatGPT style) */}
+          {attachedDocs.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {attachedDocs.map(doc => (
+                <div
+                  key={doc.id}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-medium rounded-lg border border-slate-200 transition-colors"
+                >
+                  <Paperclip className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="truncate max-w-[180px]">{doc.name}</span>
+                  <span className="text-[10px] text-slate-400">({doc.size})</span>
+                  <button
+                    type="button"
+                    onClick={() => removeAttachedDoc(doc.id)}
+                    className="p-0.5 hover:text-rose-500 text-slate-400 rounded-full"
+                    title="Remove attached document"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Multiline prompt textarea */}
           <textarea
             id="home-mission-prompt-input"
@@ -200,7 +409,7 @@ export const HomePage: React.FC = () => {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Tell me your goal in natural language..."
+            placeholder={isListening ? "Listening... Speak your goal clearly" : "Tell me your goal in natural language..."}
             disabled={isSubmitting}
             className="w-full text-slate-800 placeholder-slate-400 text-sm sm:text-base font-normal bg-transparent resize-none focus:outline-none leading-relaxed"
           />
@@ -209,29 +418,88 @@ export const HomePage: React.FC = () => {
           <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
             {/* Left Tools & Context Controls */}
             <div className="flex items-center space-x-2">
-              {/* Attach Context Button */}
+              {/* Attach Context Button (ChatGPT style) */}
               <button
                 type="button"
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors focus:outline-none"
-                title="Add context or documents"
+                onClick={handleFileClick}
+                disabled={isUploadingDoc}
+                className={cn(
+                  "w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors focus:outline-none",
+                  isUploadingDoc && "animate-pulse bg-blue-100 text-blue-600"
+                )}
+                title="Add documents (PDF, DOCX, TXT, MD, JSON)"
               >
-                <Plus className="w-4 h-4" />
+                {isUploadingDoc ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
               </button>
 
-              {/* Deep Research Toggle Pill */}
-              <button
-                type="button"
-                onClick={() => setResearchMode(m => m === 'deep' ? 'standard' : 'deep')}
-                className={cn(
-                  'px-3 py-1.5 rounded-full text-xs font-medium flex items-center space-x-1.5 transition-colors focus:outline-none',
-                  researchMode === 'deep'
-                    ? 'bg-slate-100 text-slate-800 hover:bg-slate-200'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              {/* Execution Mode Dropdown (Quick, Deep Research, Autonomous, Build) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsModeOpen(!isModeOpen)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-medium flex items-center space-x-1.5 transition-colors focus:outline-none",
+                    isModeOpen ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200" : "bg-slate-100 hover:bg-slate-200 text-slate-800"
+                  )}
+                  title="Select agent execution mode"
+                >
+                  <CurrentModeIcon className={cn("w-3.5 h-3.5", currentModeMeta.color)} />
+                  <span className="font-semibold">{currentModeMeta.name}</span>
+                  <ChevronDown className={cn("w-3 h-3 text-slate-500 transition-transform", isModeOpen && "transform rotate-180")} />
+                </button>
+
+                {/* ChatGPT-style Mode Popover Menu - Opens UPWARDS above toolbar */}
+                {isModeOpen && (
+                  <>
+                    {/* Backdrop to dismiss on outside click */}
+                    <div
+                      className="fixed inset-0 z-40 bg-transparent"
+                      onClick={() => setIsModeOpen(false)}
+                    />
+                    <div className="absolute left-0 bottom-full mb-3 w-80 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1.5 border-b border-slate-100 mb-1">
+                        Select Execution Mode
+                      </div>
+                      {EXECUTION_MODES.map((mode) => {
+                        const ModeIcon = mode.icon;
+                        const isSelected = executionMode === mode.id;
+                        return (
+                          <div
+                            key={mode.id}
+                            onClick={() => {
+                              setExecutionMode(mode.id);
+                              setIsModeOpen(false);
+                            }}
+                            className={cn(
+                              "flex items-start space-x-3 p-2.5 rounded-xl cursor-pointer transition-all",
+                              isSelected
+                                ? "bg-blue-50/90 text-blue-900 border border-blue-200/80 shadow-2xs"
+                                : "hover:bg-slate-50 text-slate-700 border border-transparent"
+                            )}
+                          >
+                            <div className={cn("mt-0.5 p-1.5 rounded-lg bg-white border border-slate-200 shadow-2xs flex-shrink-0", mode.color)}>
+                              <ModeIcon className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <span className={cn("text-xs font-semibold", isSelected ? "text-blue-900" : "text-slate-900")}>
+                                  {mode.name}
+                                </span>
+                                {isSelected && <Check className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 ml-1" />}
+                              </div>
+                              <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                                {mode.description}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {/* Little pointer beak */}
+                      <div className="absolute -bottom-1.5 left-7 w-3 h-3 bg-white border-r border-b border-slate-200 transform rotate-45" />
+                    </div>
+                  </>
                 )}
-              >
-                <span>Deep Research</span>
-                <ChevronDown className="w-3 h-3 text-slate-500" />
-              </button>
+              </div>
 
               {/* Web Discovery Pill */}
               <button
@@ -240,23 +508,31 @@ export const HomePage: React.FC = () => {
                 className={cn(
                   'px-3 py-1.5 rounded-full text-xs font-medium flex items-center space-x-1.5 transition-colors focus:outline-none',
                   webEnabled
-                    ? 'bg-slate-100 text-slate-800 hover:bg-slate-200'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                 )}
+                title={webEnabled ? "Web search enabled" : "Web search disabled"}
               >
-                <Globe className="w-3 h-3 text-slate-500" />
+                <Globe className={cn("w-3 h-3", webEnabled ? "text-blue-600" : "text-slate-400")} />
                 <span>Web</span>
               </button>
             </div>
 
             {/* Right Mic & Launch Button */}
             <div className="flex items-center space-x-2">
+              {/* Real Speech Recognition Mic */}
               <button
                 type="button"
-                className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors focus:outline-none"
-                title="Voice Input (Alexa Audio Integration)"
+                onClick={toggleSpeechRecognition}
+                className={cn(
+                  "p-2 rounded-full transition-all focus:outline-none",
+                  isListening
+                    ? "bg-rose-500 text-white animate-pulse shadow-md shadow-rose-500/30"
+                    : "text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                )}
+                title={isListening ? "Listening... Click to stop recording" : "Dictate goal with voice"}
               >
-                <Mic className="w-4 h-4" />
+                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               </button>
 
               {/* Primary Launch Mission Submit Arrow Button */}
@@ -346,7 +622,10 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 {/* Bottom Action Indicator */}
-                <div className="mt-3 flex items-center justify-end">
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-[10px] text-blue-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                    Load prompt
+                  </span>
                   <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
                 </div>
               </div>

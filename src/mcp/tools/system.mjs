@@ -8,9 +8,9 @@ export function registerSystemTools(server) {
   server.registerTool('ping', {
     description: 'Internal diagnostic tool to verify MCP protocol connectivity, latency, and transport health',
     inputSchema: {
-      message: z.string().describe('Message to echo back for latency testing')
+      message: z.string().optional().default('ping').describe('Message to echo back for latency testing')
     }
-  }, async ({ message }) => {
+  }, async ({ message = 'ping' }) => {
     return {
       content: [
         {

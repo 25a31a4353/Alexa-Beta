@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Home,
   SquarePen,
@@ -19,7 +18,6 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-// Global Navigation Items — maintaining strictly one New Conversation option
 const NAV_ITEMS: NavItem[] = [
   { name: 'Home', path: '/home', icon: Home },
   { name: 'New Conversation', path: '/new', icon: SquarePen },

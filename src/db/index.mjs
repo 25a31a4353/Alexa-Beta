@@ -238,12 +238,12 @@ Competitor analysis highlights that legacy voice assistants lack deterministic m
       '2026-10-09T18:00:00.000Z'
     );
 
-    // Document 3: Market Trends 2026 (PDF)
+    // Document 3: Market Trends 2026 (Sheet / Data)
     insertDoc.run(
       'doc-market-03',
       'Market Trends 2026',
-      'Market_Trends_2026.pdf',
-      'PDF',
+      'Market_Trends_2026.xlsx',
+      'Sheet',
       'Data',
       15,
       3.5,
@@ -262,6 +262,66 @@ Enterprise demand for autonomous agents increased 340% year-over-year. Organizat
       ]),
       JSON.stringify([]),
       '2026-10-08T14:30:00.000Z'
+    );
+
+    // Document 4: Investor Meeting Notes (PDF)
+    insertDoc.run(
+      'doc-investor-04',
+      'Investor Meeting Notes',
+      'Investor_Meeting_Notes.pdf',
+      'PDF',
+      'Notes',
+      6,
+      1.8,
+      'Executive debrief on capital allocation, Series B timelines, and compute budget expansions.',
+      `INVESTOR ALIGNMENT & CAPITAL RUNWAY
+Strategic investors unanimously approved compute resource allocations for autonomous agentic tooling. Runway is secured through late 2027.`,
+      JSON.stringify([
+        'Extended runway through 2027 confirmed',
+        'Strong investor support for open protocol-driven MCP strategy'
+      ]),
+      JSON.stringify([
+        'Finalize investor deck for Series B review',
+        'Schedule quarterly board audit'
+      ]),
+      JSON.stringify([
+        'Macro market fluctuations in AI valuations'
+      ]),
+      JSON.stringify([
+        'Compute quota budget caps'
+      ]),
+      '2026-10-07T11:00:00.000Z'
+    );
+
+    // Document 5: Product Requirements (DOCX)
+    insertDoc.run(
+      'doc-prd-05',
+      'Product Requirements',
+      'Product_Requirements.docx',
+      'DOCX',
+      'Planning',
+      15,
+      3.2,
+      'Full technical requirements specification for Alexa+ autonomous multi-step execution platform.',
+      `PRODUCT REQUIREMENTS SPECIFICATION
+Comprehensive architecture for multi-tool orchestration, Streamable HTTP MCP connections, and audit telemetry.`,
+      JSON.stringify([
+        'Full conformance with official MCP 2025-11-25 specifications',
+        'Human-in-the-loop verification required for sensitive actions'
+      ]),
+      JSON.stringify([
+        'Review and finalize feature specifications',
+        'Prepare market expansion strategy for APAC',
+        'Schedule partnership discussions',
+        'Assess and mitigate identified risks'
+      ]),
+      JSON.stringify([
+        'High concurrency tool execution latency'
+      ]),
+      JSON.stringify([
+        'Approval gate thresholds'
+      ]),
+      '2026-10-05T09:30:00.000Z'
     );
   }
 
@@ -383,8 +443,8 @@ Enterprise demand for autonomous agents increased 340% year-over-year. Organizat
     `);
 
     // Explicitly labeled DEMO/AVAILABLE states (NEVER fake genuine unauthenticated connection)
-    insertIntegration.run('google-calendar', 'Google Calendar', 'Productivity', 'DEMO', 'shanmukheswar@example.com', 1, new Date().toISOString());
-    insertIntegration.run('google-drive', 'Google Drive', 'Knowledge', 'DEMO', 'shanmukheswar@example.com', 1, new Date().toISOString());
+    insertIntegration.run('google-calendar', 'Google Calendar', 'Productivity', 'DEMO', 'shanmukheswaramedicharla@gmail.com', 1, new Date().toISOString());
+    insertIntegration.run('google-drive', 'Google Drive', 'Knowledge', 'DEMO', 'shanmukheswaramedicharla@gmail.com', 1, new Date().toISOString());
     insertIntegration.run('gmail', 'Gmail', 'Communication', 'AVAILABLE', null, 1, null);
     insertIntegration.run('notion', 'Notion', 'Knowledge', 'AVAILABLE', null, 1, null);
     insertIntegration.run('slack', 'Slack', 'Communication', 'NOT_CONNECTED', null, 1, null);
@@ -410,6 +470,7 @@ export function createConversation({ id, title, modelId = 'gpt-4o' }) {
 }
 
 export function getConversation(id) {
+  if (!id) return null;
   const db = getDatabase();
   return db.prepare('SELECT * FROM conversations WHERE id = ?').get(id) || null;
 }
@@ -455,11 +516,13 @@ export function updateMission(id, updates) {
 }
 
 export function getMission(id) {
+  if (!id) return null;
   const db = getDatabase();
   return db.prepare('SELECT * FROM missions WHERE id = ?').get(id) || null;
 }
 
 export function getMissionWithDetails(id) {
+  if (!id) return null;
   const db = getDatabase();
   const mission = getMission(id);
   if (!mission) return null;
@@ -577,4 +640,9 @@ export function getActivityEvents({ limit = 50, domain = null, isSynthetic = nul
 export function listIntegrations() {
   const db = getDatabase();
   return db.prepare('SELECT * FROM integrations ORDER BY name ASC').all();
+}
+
+export function getIntegration(id) {
+  const db = getDatabase();
+  return db.prepare('SELECT * FROM integrations WHERE id = ?').get(id) || null;
 }

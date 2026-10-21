@@ -1,29 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
-/**
- * Base LLM Provider interface
- */
-export class BaseLLMProvider {
-  /**
-   * @param {string} name
-   * @param {string} model
-   */
-  constructor(name = 'base-provider', model = 'none') {
-    this.name = name;
-    this.model = model;
-  }
-
-  /**
-   * @param {Object} params
-   * @param {import('./types.mjs').Message[]} params.messages
-   * @param {Array<any>} params.tools
-   * @param {string} [params.systemPrompt]
-   * @returns {Promise<import('./types.mjs').LLMDecision>}
-   */
-  async generateDecision(params) {
-    throw new Error('generateDecision must be implemented by subclass');
-  }
-}
+import { BaseLLMProvider } from './base.mjs';
+export { BaseLLMProvider };
 
 /**
  * Autonomous Decision Engine (Deterministic Heuristic Fallback - NOT a Neural LLM)
@@ -390,13 +368,21 @@ export class OpenAICompatibleProvider extends BaseLLMProvider {
   }
 }
 
+import { AmazonBedrockProvider } from './bedrock.mjs';
+
 /**
  * Factory function to create the active LLM provider
  */
 export function createLLMProvider(overrideType) {
-  const providerType = overrideType || process.env.LLM_PROVIDER;
+  const providerType = (overrideType || process.env.LLM_PROVIDER || '').toLowerCase();
   const rawKey = process.env.OPENAI_API_KEY || '';
   const hasRealKey = rawKey.length > 0 && rawKey !== 'your_key_here' && !rawKey.includes('placeholder');
+
+  // AWS Builder Track: Native Amazon Bedrock Provider
+  if (providerType === 'bedrock' || (process.env.AWS_REGION && process.env.AWS_ACCESS_KEY_ID)) {
+    console.log('[Provider Factory] Selected AWS Builder Provider: AmazonBedrockProvider');
+    return new AmazonBedrockProvider();
+  }
 
   if (providerType === 'openai' || hasRealKey) {
     if (hasRealKey) {

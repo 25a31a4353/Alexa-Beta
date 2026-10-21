@@ -73,11 +73,21 @@ export async function createMission(payload: {
   title?: string;
   conversationId?: string;
   sync?: boolean;
+  executionMode?: 'quick' | 'deep' | 'autonomous' | 'build';
+  webEnabled?: boolean;
+  attachedDocuments?: (string | { name: string; size?: string })[];
 }): Promise<{ mission: Mission; streamUrl?: string; result?: any }> {
   const res = await fetch(`${API_BASE}/api/missions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteMission(id: string): Promise<{ success: boolean; deletedId: string }> {
+  const res = await fetch(`${API_BASE}/api/missions/${encodeURIComponent(id)}`, {
+    method: 'DELETE'
   });
   return handleResponse(res);
 }
@@ -102,13 +112,39 @@ export async function getKnowledgeDocument(id: string): Promise<KnowledgeDocumen
   return handleResponse(res);
 }
 
+export async function searchKnowledge(query: string, category?: string): Promise<{ total: number; query?: string; category?: string; documents: KnowledgeDocument[] }> {
+  const params = new URLSearchParams();
+  params.set('query', query);
+  if (category && category !== 'all') params.set('category', category);
+  const res = await fetch(`${API_BASE}/api/knowledge/search?${params.toString()}`);
+  return handleResponse(res);
+}
+
 // 6. Integrations
-export async function listIntegrations(): Promise<{ total: number; connectedCount: number; integrations: Integration[] }> {
+export interface ListIntegrationsResponse {
+  total: number;
+  connectedCount: number;
+  genuineConnectedCount?: number;
+  demoCount?: number;
+  availableCount?: number;
+  integrations: Integration[];
+}
+
+export interface IntegrationDetailResponse extends Integration {
+  capability?: {
+    mcpTool: string;
+    domain: string;
+    description: string;
+    authType: string;
+  };
+}
+
+export async function listIntegrations(): Promise<ListIntegrationsResponse> {
   const res = await fetch(`${API_BASE}/api/integrations`);
   return handleResponse(res);
 }
 
-export async function getIntegration(id: string): Promise<Integration> {
+export async function getIntegration(id: string): Promise<IntegrationDetailResponse> {
   const res = await fetch(`${API_BASE}/api/integrations/${encodeURIComponent(id)}`);
   return handleResponse(res);
 }
@@ -126,5 +162,59 @@ export async function getActivity(filters?: { limit?: number; domain?: string; e
 // 8. Settings
 export async function getSettings(): Promise<SettingsPayload> {
   const res = await fetch(`${API_BASE}/api/settings`);
+  return handleResponse(res);
+}
+
+// 9. Interactive Direct Tool Execution
+export async function executeTool(
+  toolName: string,
+  args: Record<string, any> = {}
+): Promise<{ success: boolean; toolName: string; durationMs: number; output: string; parsed: any; isError: boolean }> {
+  const res = await fetch(`${API_BASE}/api/tools/${encodeURIComponent(toolName)}/execute`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ arguments: args })
+  });
+  return handleResponse(res);
+}
+
+// 10. Knowledge Document Upload
+export async function uploadKnowledgeDocument(doc: {
+  title: string;
+  filename?: string;
+  fileType?: string;
+  category?: string;
+  content: string;
+  summary?: string;
+  insights?: string[];
+  actionItems?: string[];
+  risks?: string[];
+  decisions?: string[];
+}): Promise<{ success: boolean; document: KnowledgeDocument }> {
+  const res = await fetch(`${API_BASE}/api/knowledge/upload`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(doc)
+  });
+  return handleResponse(res);
+}
+
+// 11. Real Integration Connect / Disconnect
+export async function connectIntegration(
+  id: string,
+  payload: { apiKey?: string; email?: string; token?: string; accountName?: string }
+): Promise<{ success: boolean; integration: Integration }> {
+  const res = await fetch(`${API_BASE}/api/integrations/${encodeURIComponent(id)}/connect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  return handleResponse(res);
+}
+
+export async function disconnectIntegration(id: string): Promise<{ success: boolean; id: string; status: string }> {
+  const res = await fetch(`${API_BASE}/api/integrations/${encodeURIComponent(id)}/disconnect`, {
+    method: 'POST'
+  });
   return handleResponse(res);
 }

@@ -113,6 +113,9 @@ export interface KnowledgeDocument {
   risks?: string[];
   decisions_needed?: string[];
   uploaded_at: string;
+  relevance?: string;
+  relevance_score?: number;
+  snippet?: string;
 }
 
 export interface Integration {
@@ -161,5 +164,31 @@ export interface SettingsPayload {
     defaultModel: string;
     notificationsEnabled: boolean;
     autoExecutionApproved: boolean;
+  };
+  runtime?: {
+    version: string;
+    nodeVersion: string;
+    platform: string;
+    uptimeSeconds: number;
+    environment: string;
+  };
+  agentRuntime?: {
+    status: string;
+    executionMode: string;
+    activeModel: string;
+    llmProvider: string;
+    llmKeyConfigured: boolean;
+  };
+  mcpRuntime?: {
+    status: string;
+    serverUrl: string;
+    transport: string;
+    protocolVersion: string;
+    toolsCount: number;
+  };
+  persistence?: {
+    database: string;
+    filepath: string;
+    status: string;
   };
 }

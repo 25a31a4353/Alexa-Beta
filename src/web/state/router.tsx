@@ -28,9 +28,9 @@ export const useRouter = () => useContext(RouterContext);
 
 function getPathFromUrl(): string {
   const hash = window.location.hash.replace(/^#/, '');
-  if (hash) return hash.startsWith('/') ? hash : `/${hash}`;
-  const path = window.location.pathname;
-  return path || '/home';
+  const raw = hash ? (hash.startsWith('/') ? hash : `/${hash}`) : (window.location.pathname || '/home');
+  const clean = raw.split('?')[0];
+  return clean || '/home';
 }
 
 export const RouterProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -56,12 +56,30 @@ export const RouterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const navigate = (newPath: string) => {
     const normalized = newPath === '/' ? '/home' : newPath;
     window.location.hash = normalized;
-    setPath(normalized);
+    const clean = normalized.split('?')[0];
+    setPath(clean);
     window.scrollTo(0, 0);
   };
 
-  // Extract parameters for dynamic paths like /missions/:id or /conversations/:id
+  // Extract parameters for dynamic paths and query parameters
   const params: Record<string, string> = {};
+
+  const fullHash = typeof window !== 'undefined' ? window.location.hash : '';
+  const queryPart = fullHash.includes('?')
+    ? fullHash.split('?')[1]
+    : typeof window !== 'undefined'
+    ? window.location.search.replace(/^\?/, '')
+    : '';
+
+  if (queryPart) {
+    try {
+      const sp = new URLSearchParams(queryPart);
+      sp.forEach((val, key) => {
+        params[key] = val;
+      });
+    } catch {}
+  }
+
   if (path.startsWith('/missions/')) {
     params.id = path.replace('/missions/', '');
   } else if (path.startsWith('/conversations/')) {

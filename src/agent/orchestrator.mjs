@@ -221,13 +221,37 @@ export class AgentOrchestrator {
       metadata: { goal: userObjective }
     }, eventCallback);
 
-    // Initial plan step milestones
-    const planSteps = [
-      { stepIndex: 1, label: 'Discover relevant context and schedules', domain: 'External Services', assignedTool: 'calendar_get_events' },
-      { stepIndex: 2, label: 'Search and inspect connected knowledge base', domain: 'Knowledge', assignedTool: 'knowledge_search' },
-      { stepIndex: 3, label: 'Deeply analyze document details and identify gaps', domain: 'Knowledge', assignedTool: 'document_analyze' },
-      { stepIndex: 4, label: 'Synthesize actionable results and verify findings', domain: 'Verification', assignedTool: null }
-    ];
+    // Mode-specific plan step formulation (ChatGPT-style execution modes)
+    const mode = (executionOptions.executionMode || 'autonomous').toLowerCase();
+    let planSteps = [];
+    if (mode === 'quick') {
+      planSteps = [
+        { stepIndex: 1, label: 'Retrieve targeted context via tool execution', domain: 'External Services', assignedTool: 'calendar_get_events' },
+        { stepIndex: 2, label: 'Synthesize direct actionable answer', domain: 'Verification', assignedTool: null }
+      ];
+    } else if (mode === 'build') {
+      planSteps = [
+        { stepIndex: 1, label: 'Formulate technical milestones & architecture requirements', domain: 'Planning', assignedTool: null },
+        { stepIndex: 2, label: 'Cross-reference specifications against knowledge assets', domain: 'Knowledge', assignedTool: 'knowledge_search' },
+        { stepIndex: 3, label: 'Verify dependencies and extract structured action checklist', domain: 'Knowledge', assignedTool: 'document_analyze' },
+        { stepIndex: 4, label: 'Deliver implementation blueprint and verification gates', domain: 'Verification', assignedTool: null }
+      ];
+    } else if (mode === 'deep') {
+      planSteps = [
+        { stepIndex: 1, label: 'Exhaustive schedule and calendar reconnaissance', domain: 'External Services', assignedTool: 'calendar_get_events' },
+        { stepIndex: 2, label: 'Deep multi-vector search across all connected documents', domain: 'Knowledge', assignedTool: 'knowledge_search' },
+        { stepIndex: 3, label: 'Exhaustive document analysis, anomaly detection and risk scoring', domain: 'Knowledge', assignedTool: 'document_analyze' },
+        { stepIndex: 4, label: 'Strategic executive synthesis and grounded verification', domain: 'Verification', assignedTool: null }
+      ];
+    } else {
+      // autonomous default
+      planSteps = [
+        { stepIndex: 1, label: 'Discover relevant context and schedules', domain: 'External Services', assignedTool: 'calendar_get_events' },
+        { stepIndex: 2, label: 'Search and inspect connected knowledge base', domain: 'Knowledge', assignedTool: 'knowledge_search' },
+        { stepIndex: 3, label: 'Deeply analyze document details and identify gaps', domain: 'Knowledge', assignedTool: 'document_analyze' },
+        { stepIndex: 4, label: 'Synthesize actionable results and verify findings', domain: 'Verification', assignedTool: null }
+      ];
+    }
 
     const stepIdMap = new Map();
     if (this.enablePersistence && missionId) {
