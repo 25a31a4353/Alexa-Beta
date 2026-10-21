@@ -53,7 +53,7 @@ All execution state is persisted in an authoritative SQLite database, and real-t
 - A 100% compliant, self-hosted MCP server running over the modern Streamable HTTP transport.
 - The Interactive MCP Tool Runner, allowing judges to test raw MCP JSON-RPC calls with millisecond execution latency display.
 - An autonomous multi-step planning loop that produces fact-grounded results without hallucinating tool outputs.
-- 14 hostile automated test suites passing with a 100% success rate.
+- 16 automated test suites passing with a 100% success rate (including Stage 7 hostile attacks, Bedrock Converse integration, and session reaper verification).
 
 ---
 

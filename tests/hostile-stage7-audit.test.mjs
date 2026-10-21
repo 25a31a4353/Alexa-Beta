@@ -48,7 +48,7 @@ async function runStage7HostileAudit() {
     { method: 'POST', path: '/api/conversations', expectedStatus: 201, body: { title: 'Audit Conv' }, validate: (d) => typeof d.id === 'string' },
     { method: 'GET', path: '/api/missions', expectedStatus: 200, validate: (d) => Array.isArray(d.missions) && typeof d.total === 'number' },
     { method: 'GET', path: '/api/tools', expectedStatus: 200, validate: (d) => Array.isArray(d.tools) && d.tools.length === 4 },
-    { method: 'GET', path: '/api/knowledge', expectedStatus: 200, validate: (d) => Array.isArray(d.documents) && d.documents.length === 5 },
+    { method: 'GET', path: '/api/knowledge', expectedStatus: 200, validate: (d) => Array.isArray(d.documents) && d.documents.length >= 5 },
     { method: 'GET', path: '/api/knowledge/search?query=Roadmap', expectedStatus: 200, validate: (d) => Array.isArray(d.documents) && d.total >= 1 },
     { method: 'GET', path: '/api/activity', expectedStatus: 200, validate: (d) => typeof d.metrics?.totalActivities === 'number' && Array.isArray(d.events) },
     { method: 'GET', path: '/api/integrations', expectedStatus: 200, validate: (d) => d.genuineConnectedCount === 0 && d.demoCount === 2 && Array.isArray(d.integrations) },

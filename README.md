@@ -142,12 +142,12 @@ cd alexa-plus
 npm install
 ```
 
-### Run Automated Test Suite (14 Test Suites)
-Verify the entire backend, MCP server parity, persistence lifecycle, and hostile stress tests:
+### Run Automated Test Suite (16 Test Suites)
+Verify the entire backend, MCP server parity, persistence lifecycle, hostile stress tests, AWS Bedrock integration, and MCP session reaper:
 ```bash
 npm test
 ```
-*All 14 test suites run against the real MCP server and SQLite persistence with 100% pass verification.*
+*All 16 test suites run against the real MCP server and SQLite persistence with 100% pass verification.*
 
 ### Starting the Platform
 Open three terminal windows (or run in background):
