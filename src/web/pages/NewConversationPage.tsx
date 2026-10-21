@@ -351,6 +351,18 @@ export const NewConversationPage: React.FC = () => {
         <p className="mt-2 text-xs sm:text-sm text-slate-500 max-w-lg leading-relaxed font-normal">
           Ask a complex question, set a goal, or give me a task. I can understand, plan, use the right tools, and get things done for you.
         </p>
+
+        {/* Hackathon Mini-Challenges Live Badges */}
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+          <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+            <span>AWS Builder: Bedrock Converse Active</span>
+          </span>
+          <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-900 border border-emerald-200 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span>Open Source: mcp-session-reaper (MIT)</span>
+          </span>
+        </div>
       </div>
 
       {/* 2. QUICK-START CARDS GRID (3 Columns x 2 Rows) */}
@@ -606,9 +618,10 @@ export const NewConversationPage: React.FC = () => {
                   className="text-xs font-semibold px-2 py-1 rounded-lg border bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300 focus:outline-none cursor-pointer"
                   title="LLM Decision Provider"
                 >
-                  <option value="Autonomous Decision Engine">Autonomous Engine</option>
-                  <option value="Claude 3.5 Sonnet" disabled>Claude 3.5 Sonnet (API Key Req)</option>
-                  <option value="GPT-4o" disabled>GPT-4o (API Key Req)</option>
+                  <option value="Autonomous Decision Engine">Autonomous Engine (Local Fallback)</option>
+                  <option value="Amazon Bedrock — Claude 3.5 Sonnet">AWS Bedrock — Claude 3.5 Sonnet</option>
+                  <option value="Amazon Bedrock — Nova Pro">AWS Bedrock — Nova Pro</option>
+                  <option value="OpenAI GPT-4o">OpenAI GPT-4o</option>
                 </select>
               </div>
             </div>

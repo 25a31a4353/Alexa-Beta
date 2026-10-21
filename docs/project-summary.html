@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Alexa+ Autonomous Mission Platform — Complete Project Dossier</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 16mm;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      line-height: 1.55;
+      font-size: 11pt;
+      margin: 0;
+      padding: 0;
+    }
+    h1, h2, h3, h4 {
+      color: #0f172a;
+      font-weight: 700;
+      page-break-after: avoid;
+    }
+    h1 {
+      font-size: 22pt;
+      border-bottom: 2px solid #2563eb;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    h2 {
+      font-size: 15pt;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 4px;
+      margin-top: 24px;
+      margin-bottom: 10px;
+    }
+    h3 {
+      font-size: 12pt;
+      margin-top: 16px;
+      margin-bottom: 6px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 9pt;
+      font-weight: 600;
+      border-radius: 9999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      margin-right: 4px;
+    }
+    .badge-green {
+      background: #ecfdf5;
+      color: #047857;
+      border-color: #a7f3d0;
+    }
+    .badge-amber {
+      background: #fffbeb;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 9.5pt;
+      page-break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    pre, code {
+      font-family: Consolas, "Liberation Mono", Courier, monospace;
+      font-size: 9pt;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+    }
+    code {
+      padding: 1px 4px;
+      color: #0f172a;
+    }
+    pre {
+      padding: 10px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    .screenshot-card {
+      margin: 16px 0;
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f8fafc;
+      page-break-inside: avoid;
+      text-align: center;
+    }
+    .screenshot-card img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .screenshot-caption {
+      font-size: 9pt;
+      color: #64748b;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+    .callout {
+      padding: 10px 14px;
+      background: #f0fdf4;
+      border-left: 4px solid #16a34a;
+      border-radius: 0 6px 6px 0;
+      margin: 12px 0;
+      font-size: 9.5pt;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COVER / HEADER -->
+  <h1>Alexa+ Mission Execution Platform</h1>
+  <p><strong>Comprehensive Master Project Dossier & Current State Blueprint</strong><br>
+  <em>Prepared for Shanmukheswar | Hackathon 2026 Submission</em></p>
+
+  <div style="margin: 14px 0;">
+    <span class="badge badge-green">Primary Track: Alexa+</span>
+    <span class="badge badge-amber">Mini-Challenge: AWS Builder</span>
+    <span class="badge badge-green">Mini-Challenge: Open Source</span>
+    <span class="badge">16 Test Suites: 100% Pass</span>
+    <span class="badge">TypeScript: 0 Errors</span>
+  </div>
+
+  <div class="callout">
+    <strong>Purpose of this Document:</strong> This document contains pin-to-pin technical details, architecture records, test proofs, prototype screenshots, and an inventory of completed and remaining work. When starting a fresh session, provide this document to orient the assistant in 30 seconds.
+  </div>
+
+  <!-- SECTION 1 -->
+  <h2>1. Executive Summary & Positioning</h2>
+  <p>
+    This project is an <strong>Alexa+-inspired autonomous agentic assistant platform</strong> built around the official <strong>Model Context Protocol (MCP) Streamable HTTP</strong> specification (spec <code>2025-11-25+</code>). Rather than simulating tool execution through static chat prompts, the platform connects an agent orchestrator to an independent self-hosted MCP server (<code>:3001/mcp</code>) over HTTP with dynamic capability discovery and persistent SQLite state tracking.
+  </p>
+
+  <!-- SECTION 2 -->
+  <h2>2. System Architecture Blueprint</h2>
+  <pre>
+                            USER (Browser)
+                                  │
+                                  ▼
+                    SIMULATED ASSISTANT WEB APP
+                (React 19 + TypeScript + Tailwind CSS)
+                                  │
+                          HTTP / SSE Streaming
+                                  │
+                                  ▼
+                         APPLICATION API SERVER
+                          (Express on Port 3000)
+                                  │
+                                  ▼
+                          AGENT ORCHESTRATOR
+                     ┌────────────┼────────────┐
+                     │            │            │
+                 Understand     Plan        Verify
+                     │            │            │
+                     └────────────┼────────────┘
+                                  │
+                           MCP CLIENT LAYER
+                                  │
+                       Streamable HTTP Transport
+                           POST /mcp (SSE)
+                                  │
+                                  ▼
+                         SELF-HOSTED MCP SERVER
+                      (Port 3001/mcp - Spec 2025-11-25+)
+                     ┌────────────┼────────────┐
+                     ▼            ▼            ▼
+               calendar_get   knowledge_   document_
+                  events        search      analyze
+                     │            │            │
+                     └────────────┼────────────┘
+                                  │
+                                  ▼
+                          LOCAL PERSISTENCE
+                    (SQLite: data/alexa_plus.db)
+  </pre>
+
+  <!-- SECTION 3 -->
+  <h2>3. Pin-to-Pin Feature & Reality Catalog</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>User Interaction</th>
+        <th>Underlying Execution</th>
+        <th>Grounding</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Natural Composer</strong></td>
+        <td>Prompt typing, keyboard submit (Ctrl+Enter), popular use case pills.</td>
+        <td>Generates conversation ID and mission entity via <code>POST /api/missions</code>.</td>
+        <td>SQLite relational persistence</td>
+      </tr>
+      <tr>
+        <td><strong>Execution Modes</strong></td>
+        <td>ChatGPT-style dropdown: <em>Quick, Deep Research, Autonomous, Build</em>.</td>
+        <td>Instructs orchestrator to generate 2 to 4-step execution DAGs tailored to depth.</td>
+        <td>Real DAG planning</td>
+      </tr>
+      <tr>
+        <td><strong>Document Attachment</strong></td>
+        <td><code>+</code> and paperclip buttons upload PDF, DOCX, TXT, MD, JSON.</td>
+        <td>Calls <code>POST /api/knowledge/upload</code> and indexes into knowledge store.</td>
+        <td>SQLite knowledge table</td>
+      </tr>
+      <tr>
+        <td><strong>Voice Dictation</strong></td>
+        <td>Microphone button with animated pulse indicator.</td>
+        <td>Web Speech API (SpeechRecognition) appends text to prompt.</td>
+        <td>Browser Web Speech API</td>
+      </tr>
+      <tr>
+        <td><strong>Mission Workspace</strong></td>
+        <td>Live stages: <em>Understand → Plan → Tools → Verify → Result</em>.</td>
+        <td>Subscribes to Server-Sent Events (SSE) from <code>/api/missions/:id/stream</code>.</td>
+        <td>Real-time SSE event bus</td>
+      </tr>
+      <tr>
+        <td><strong>Interactive Tool Runner</strong></td>
+        <td>Tools page "Use" button opens runner modal.</td>
+        <td>Executes JSON arguments against MCP server via <code>POST /api/tools/:name/execute</code>.</td>
+        <td>Raw MCP JSON-RPC 2.0</td>
+      </tr>
+      <tr>
+        <td><strong>Options Menu (3 Dots)</strong></td>
+        <td>Missions page header dropdown.</td>
+        <td>Copy ID, copy goal text, re-run mission, delete mission (<code>DELETE /api/missions/:id</code>).</td>
+        <td>SQLite database mutation</td>
+      </tr>
+      <tr>
+        <td><strong>Honest Integrations</strong></td>
+        <td>Integrations page configure/connect modal.</td>
+        <td>Configures API keys and email (<code>shanmukheswaramedicharla@gmail.com</code>).</td>
+        <td>Explicit status in SQLite</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 4 -->
+  <div class="page-break"></div>
+  <h2>4. Mini-Challenges Technical Breakdown</h2>
+
+  <h3>A. AWS Builder Track (Amazon Bedrock Converse Integration)</h3>
+  <ul>
+    <li><strong>SDK Installed:</strong> <code>@aws-sdk/client-bedrock-runtime</code> (v3.1154.0).</li>
+    <li><strong>Implementation Module:</strong> <code>src/agent/llm/bedrock.mjs</code>.</li>
+    <li><strong>Models Supported:</strong> <code>anthropic.claude-3-5-sonnet-20241022-v2:0</code> & <code>amazon.nova-pro-v1:0</code>.</li>
+    <li><strong>API Employed:</strong> AWS Bedrock <code>ConverseCommand</code> with structured <code>toolConfig.tools</code> and message block hierarchy.</li>
+    <li><strong>Zero-Crash Fallback:</strong> If AWS credentials are absent or offline, it safely defaults to the deterministic <code>AutonomousDecisionEngine</code>.</li>
+    <li><strong>Test Command:</strong> <code>npm run test:bedrock</code> (5 tests, 100% pass).</li>
+  </ul>
+
+  <h3>B. Open Source Track (<code>mcp-session-reaper</code>)</h3>
+  <ul>
+    <li><strong>Standalone Package Path:</strong> <code>packages/mcp-session-reaper/</code>.</li>
+    <li><strong>License:</strong> MIT License (standalone LICENSE file included).</li>
+    <li><strong>Problem Solved:</strong> Socket-aware scavenging for Streamable HTTP SSE connections in Node.js/Express, eliminating memory leaks when clients disconnect.</li>
+    <li><strong>Package Files:</strong> <code>package.json</code>, <code>index.js</code>, <code>LICENSE</code>, <code>README.md</code>, <code>test.js</code>.</li>
+    <li><strong>Test Command:</strong> <code>npm run test:reaper</code> (5 tests, 100% pass).</li>
+  </ul>
+
+  <!-- SECTION 5 -->
+  <h2>5. Prototype Screenshots & Visual Verification</h2>
+
+  <div class="screenshot-card">
+    <img src="screenshots/homepage.png" alt="Home Page">
+    <div class="screenshot-caption">Figure 1: Production Home Page with Single-Row Capability Pills, Amazon Smile, and Prompt Composer</div>
+  </div>
+
+  <div class="screenshot-card">
+    <img src="screenshots/popover.png" alt="Execution Modes Popover">
+    <div class="screenshot-caption">Figure 2: Upwards-Opening ChatGPT-Style Execution Modes Popover (Quick, Deep Research, Autonomous, Build)</div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <div class="screenshot-card">
+    <img src="screenshots/tool_runner.png" alt="Tool Runner Modal">
+    <div class="screenshot-caption">Figure 3: Tools Page Interactive MCP Tool Runner Modal with Editable JSON Arguments</div>
+  </div>
+
+  <div class="screenshot-card">
+    <img src="screenshots/tool_result.png" alt="Tool Execution Result">
+    <div class="screenshot-caption">Figure 4: Live MCP Execution Terminal Output over :3001/mcp with Latency and JSON Payload</div>
+  </div>
+
+  <div class="screenshot-card">
+    <img src="screenshots/settings.png" alt="Settings & Mini Challenges">
+    <div class="screenshot-caption">Figure 5: Settings Page displaying Runtime Configuration, Profile Identity, and Hackathon Mini-Challenges Live Verification</div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <h2>6. Automated Test Suites Verification Summary</h2>
+  <pre>
+Total Test Suites: 16 | Passed: 16 (100%) | Failed: 0
+------------------------------------------------------------------------
+1.  tests/agent-orchestrator.test.mjs          [PASS] (MCP Lifecycle)
+2.  tests/orchestrator-provider-driven.test.mjs[PASS] (Provider Decoupling)
+3.  tests/openai-provider-wire.test.mjs        [PASS] (Neural Provider Wire)
+4.  tests/multi-tool-chain.test.mjs            [PASS] (Multi-Tool Sequencing)
+5.  tests/calendar-mcp.test.mjs                [PASS] (Calendar MCP Tool)
+6.  tests/persistence-lifecycle.test.mjs       [PASS] (Durability & Recovery)
+7.  tests/application-api-e2e.test.mjs         [PASS] (API & SSE Reconnection)
+8.  tests/mission-workspace-real.test.mjs      [PASS] (Workspace State Integrity)
+9.  tests/mcp-tools-parity.test.mjs            [PASS] (tools/list & call Parity)
+10. tests/activity-persistence.test.mjs        [PASS] (Activity Timeline Store)
+11. tests/knowledge-mcp-parity.test.mjs        [PASS] (Knowledge Search Tool)
+12. tests/integrations-reality.test.mjs        [PASS] (Honest Capability Model)
+13. tests/settings-reality.test.mjs            [PASS] (Settings Telemetry)
+14. tests/hostile-stage7-audit.test.mjs        [PASS] (Hostile Attacks & Concurrency)
+15. tests/aws-bedrock-integration.test.mjs     [PASS] (AWS Bedrock Converse API)
+16. packages/mcp-session-reaper/test.js        [PASS] (Open Source Package Tests)
+  </pre>
+
+  <!-- SECTION 7 -->
+  <h2>7. Inventory: What is Complete vs. What is Left Over</h2>
+
+  <h3>✅ What is 100% Completed & Verified</h3>
+  <ul>
+    <li>Self-hosted MCP Server operating over Streamable HTTP on <code>:3001/mcp</code>.</li>
+    <li>4 executable MCP tools (<code>calendar_get_events</code>, <code>knowledge_search</code>, <code>document_analyze</code>, <code>ping</code>).</li>
+    <li>Autonomous agent DAG orchestrator with real-time SSE streaming.</li>
+    <li>SQLite persistence with relational tables and zero orphaned records.</li>
+    <li>All UI pages: Home, New Conversation, Missions Workspace, Tools, Knowledge, Integrations, Activity, Settings.</li>
+    <li>ChatGPT-style execution modes, document attachment chip badging, and speech recognition.</li>
+    <li>AWS Bedrock Converse integration with Claude 3.5 Sonnet and Nova Pro.</li>
+    <li>Open source <code>mcp-session-reaper</code> companion library.</li>
+    <li>Complete Devpost submission package, video script, and friction logs.</li>
+    <li>Git repository pushed and clean on <code>main</code> branch.</li>
+  </ul>
+
+  <h3>⏳ What is Left Over / Next Polishing Steps for the Next Conversation</h3>
+  <ul>
+    <li><strong>Demo Video Recording:</strong> Follow the exact 2m45s script in <code>docs/devpost-submission-package.md</code> using screen capture.</li>
+    <li><strong>Live Third-Party OAuth:</strong> Replace local SQLite calendar/drive datasets with real Google Cloud Console OAuth 2.0 client IDs if live external sync is desired.</li>
+    <li><strong>Audio Playback Synthesis:</strong> Add Web Speech TTS (Text-to-Speech) so the agent can read aloud final mission results.</li>
+    <li><strong>Dedicated Standalone Repo for Reaper:</strong> Push <code>packages/mcp-session-reaper</code> to a separate standalone GitHub repository (optional for the Open Source track).</li>
+  </ul>
+
+  <!-- SECTION 8 -->
+  <h2>8. Quick Reference / Cheat Sheet for New Conversations</h2>
+  <ul>
+    <li><strong>MCP Server Port:</strong> <code>3001</code> (<code>http://127.0.0.1:3001/mcp</code>)</li>
+    <li><strong>Application API Port:</strong> <code>3000</code> (<code>http://127.0.0.1:3000</code>)</li>
+    <li><strong>Web App Port:</strong> <code>5173</code> (<code>http://127.0.0.1:5173</code>)</li>
+    <li><strong>Database Path:</strong> <code>data/alexa_plus.db</code> (SQLite)</li>
+    <li><strong>User Profile Email:</strong> <code>shanmukheswaramedicharla@gmail.com</code></li>
+    <li><strong>Commands:</strong>
+      <ul>
+        <li>Run all tests: <code>npm test</code></li>
+        <li>Build web bundle: <code>npm run build:web</code></li>
+        <li>Run Bedrock test: <code>npm run test:bedrock</code></li>
+        <li>Run Reaper test: <code>npm run test:reaper</code></li>
+      </ul>
+    </li>
+  </ul>
+
+</body>
+</html>

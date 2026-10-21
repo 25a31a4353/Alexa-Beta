@@ -54,6 +54,11 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
           <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-[#1D63ED] text-white">
             BETA
           </span>
+
+          {/* AWS Bedrock mini-challenge badge */}
+          <span className="hidden md:inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            AWS Bedrock
+          </span>
         </button>
       </div>
 

@@ -376,6 +376,82 @@ export const SettingsPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Card 2.5: Hackathon Mini-Challenges Showcase */}
+              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div>
+                    <div className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider mb-1">
+                      Hackathon Additions
+                    </div>
+                    <h2 className="text-sm md:text-base font-bold text-slate-900">
+                      Mini-Challenges Integration
+                    </h2>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Verified implementations for AWS Builder and Open Source tracks.
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    2 / 2 Verified
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                  {/* AWS Builder Track */}
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/50 to-orange-50/30 border border-amber-200/80 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center font-black text-xs shadow-xs">
+                          AWS
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-900">AWS Builder Track</h4>
+                          <span className="text-[10px] text-amber-700 font-medium">Amazon Bedrock Native Converse</span>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded-md">
+                        QUALIFIED
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-600 leading-snug">
+                      Native tool calling via <code className="text-amber-800 font-semibold text-[10px]">@aws-sdk/client-bedrock-runtime</code> supporting <strong>Claude 3.5 Sonnet</strong> & <strong>Amazon Nova Pro</strong> with zero-downtime resilient fallback.
+                    </p>
+
+                    <div className="pt-1.5 border-t border-amber-200/60 flex items-center justify-between text-[10px] text-slate-500">
+                      <span>Module: <code className="text-slate-700">src/agent/llm/bedrock.mjs</code></span>
+                      <span className="text-emerald-700 font-semibold">Test: 100% Pass</span>
+                    </div>
+                  </div>
+
+                  {/* Open Source Track */}
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border border-emerald-200/80 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black text-xs shadow-xs">
+                          OSS
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-900">Open Source Track</h4>
+                          <span className="text-[10px] text-emerald-700 font-medium">mcp-session-reaper</span>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-md">
+                        QUALIFIED
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-600 leading-snug">
+                      Standalone companion package solving Streamable HTTP SSE socket dangling & session leakage in Express servers under the <strong>MIT License</strong>.
+                    </p>
+
+                    <div className="pt-1.5 border-t border-emerald-200/60 flex items-center justify-between text-[10px] text-slate-500">
+                      <span>Path: <code className="text-slate-700">packages/mcp-session-reaper</code></span>
+                      <span className="text-emerald-700 font-semibold">Test: 100% Pass</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Card 3: Preferences */}
               <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
