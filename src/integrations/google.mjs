@@ -511,6 +511,28 @@ export async function getGoogleDriveFile(fileId) {
   }
 
   const f = await res.json();
+  let content = f.description || `Drive document: ${f.name}`;
+
+  try {
+    if (f.mimeType === 'application/vnd.google-apps.document') {
+      const exportRes = await fetch(`${GOOGLE_DRIVE_ENDPOINT}/${encodeURIComponent(fileId)}/export?mimeType=text%2Fplain`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (exportRes.ok) {
+        content = (await exportRes.text()).slice(0, 8000);
+      }
+    } else if (f.mimeType && (f.mimeType.startsWith('text/') || f.mimeType.includes('markdown') || f.mimeType.includes('json'))) {
+      const mediaRes = await fetch(`${GOOGLE_DRIVE_ENDPOINT}/${encodeURIComponent(fileId)}?alt=media`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (mediaRes.ok) {
+        content = (await mediaRes.text()).slice(0, 8000);
+      }
+    }
+  } catch (contentErr) {
+    console.warn('[Google Drive] Content export warning:', contentErr.message);
+  }
+
   return {
     fileId: f.id,
     name: f.name,
@@ -518,7 +540,8 @@ export async function getGoogleDriveFile(fileId) {
     modifiedTime: f.modifiedTime,
     webUrl: f.webViewLink || null,
     owners: (f.owners || []).map(o => o.displayName || o.emailAddress),
-    snippet: f.description || `Drive document: ${f.name}`,
+    snippet: content.slice(0, 300),
+    content,
     source: 'Google Drive — Live OAuth',
     provider: 'google'
   };
