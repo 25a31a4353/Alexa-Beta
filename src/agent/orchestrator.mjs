@@ -245,12 +245,22 @@ export class AgentOrchestrator {
       ];
     } else {
       // autonomous default
-      planSteps = [
-        { stepIndex: 1, label: 'Discover relevant context and schedules', domain: 'External Services', assignedTool: 'calendar_get_events' },
-        { stepIndex: 2, label: 'Search and inspect connected knowledge base', domain: 'Knowledge', assignedTool: 'knowledge_search' },
-        { stepIndex: 3, label: 'Deeply analyze document details and identify gaps', domain: 'Knowledge', assignedTool: 'document_analyze' },
-        { stepIndex: 4, label: 'Synthesize actionable results and verify findings', domain: 'Verification', assignedTool: null }
-      ];
+      if (/email|gmail|inbox/i.test(userObjective) || /drive/i.test(userObjective)) {
+        planSteps = [
+          { stepIndex: 1, label: 'Discover meeting context and schedule from Calendar', domain: 'Calendar', assignedTool: 'calendar_get_events' },
+          { stepIndex: 2, label: 'Search relevant email threads and communications', domain: 'Email', assignedTool: 'gmail_search' },
+          { stepIndex: 3, label: 'Locate relevant documents and specifications in Drive', domain: 'Cloud Storage', assignedTool: 'drive_search' },
+          { stepIndex: 4, label: 'Inspect document details and analyze preparation gaps', domain: 'Knowledge', assignedTool: 'document_analyze' },
+          { stepIndex: 5, label: 'Synthesize actionable checklist and verify evidence', domain: 'Verification', assignedTool: null }
+        ];
+      } else {
+        planSteps = [
+          { stepIndex: 1, label: 'Discover relevant context and schedules', domain: 'External Services', assignedTool: 'calendar_get_events' },
+          { stepIndex: 2, label: 'Search and inspect connected knowledge base', domain: 'Knowledge', assignedTool: 'knowledge_search' },
+          { stepIndex: 3, label: 'Deeply analyze document details and identify gaps', domain: 'Knowledge', assignedTool: 'document_analyze' },
+          { stepIndex: 4, label: 'Synthesize actionable results and verify findings', domain: 'Verification', assignedTool: null }
+        ];
+      }
     }
 
     const stepIdMap = new Map();
@@ -474,6 +484,7 @@ CRITICAL INVARIANTS:
               if (this.enablePersistence && toolExecutionRecordId) {
                 updateToolExecution(toolExecutionRecordId, {
                   status: 'FAILED',
+                  output: textOutput,
                   error_message: textOutput,
                   duration_ms: toolDuration,
                   completed_at: new Date().toISOString()
