@@ -119,11 +119,65 @@ export function registerKnowledgeTools(server) {
     description: 'Deeply analyze specified document(s) to extract key topics, actionable decisions, required action items, risk factors, and preparation guidance for upcoming meetings.',
     inputSchema: {
       documentIds: z.array(z.string()).min(1).describe("List of document IDs or filenames to analyze (e.g. ['doc-roadmap-01'] or ['Q4_Roadmap.pdf'])"),
+      rawContent: z.string().optional().describe("Raw text content or body of external/cloud document to analyze directly"),
       analysisType: z.enum(["key_points", "gap_analysis", "risk_assessment", "action_items", "all"]).default("all").describe("Analysis mode to perform"),
       focus: z.array(z.string()).optional().describe("Specific topics or criteria to extract (e.g. ['decisions', 'action_items', 'risks'])")
     }
-  }, async ({ documentIds, analysisType, focus }) => {
+  }, async ({ documentIds, rawContent, analysisType, focus }) => {
     try {
+      // Priority 1: If rawContent was passed directly (from Google Drive or external source), analyze it dynamically
+      if (rawContent && typeof rawContent === 'string' && rawContent.trim().length > 0) {
+        const lines = rawContent.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const docName = documentIds[0] || 'Cloud Document';
+
+        const bulletPoints = lines.filter(l => /^[-*•\d\.]/.test(l)).map(l => l.replace(/^[-*•\d\.]+\s*/, ''));
+        const textLines = bulletPoints.length > 0 ? bulletPoints : lines;
+
+        const key_topics = textLines.slice(0, 4);
+        const action_items = textLines.filter(l => /verify|ensure|confirm|implement|prepare|review|test|deploy|checklist|discuss/i.test(l)).slice(0, 4);
+        if (action_items.length === 0) {
+          action_items.push(`Review full content of "${docName}" for operational action items`);
+        }
+
+        const risks = textLines.filter(l => /risk|delay|dependency|limit|quota|expired|error|challenge/i.test(l)).slice(0, 3);
+        if (risks.length === 0) {
+          risks.push(`External provider latency and execution window dependencies`);
+        }
+
+        const decisions_needed = textLines.filter(l => /decide|decision|approve|signoff|priority|select|allocate/i.test(l)).slice(0, 3);
+        if (decisions_needed.length === 0) {
+          decisions_needed.push(`Approve roadmap milestones and implementation architecture for "${docName}"`);
+        }
+
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify({
+              analyzedDocuments: [{
+                documentId: docName,
+                title: docName,
+                filename: docName,
+                summary: `Analyzed document "${docName}" from live cloud content (${rawContent.length} bytes).`
+              }],
+              analysisType,
+              totalDocumentsAnalyzed: 1,
+              key_topics: key_topics.length > 0 ? key_topics : [`Analyzed ${docName}`],
+              action_items,
+              risks,
+              decisions_needed,
+              preparation_gaps: [
+                `Finalize verification of specifications outlined in ${docName}`,
+                `Confirm alignment on deliverables before meeting start`
+              ],
+              recommendations_for_user: [
+                `Review highlighted topics and action items from ${docName}`,
+                `Confirm technical details with team members`
+              ]
+            }, null, 2)
+          }]
+        };
+      }
+
       const db = getDatabase();
 
       const placeholders = documentIds.map(() => '?').join(',');

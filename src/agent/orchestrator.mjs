@@ -669,20 +669,25 @@ CRITICAL INVARIANTS:
       }, eventCallback);
 
       const hasGrounding = executedToolTraces.length > 0;
+      const hasErrors = executedToolTraces.some(t => t.isError || t.error);
+      const failedCount = executedToolTraces.filter(t => t.isError || t.error).length;
+
       this.emitLifecycleEvent({
         missionId,
         conversationId,
         eventType: 'verification.completed',
-        title: 'Verification Complete',
-        description: hasGrounding ? 'Synthesized result is grounded in tool execution evidence.' : 'Result formulated directly without tool traces.',
+        title: hasErrors ? 'Verification Completed with Warnings' : 'Verification Complete',
+        description: hasErrors
+          ? `Result synthesized with partial evidence: ${failedCount} tool execution(s) reported errors.`
+          : (hasGrounding ? 'Synthesized result is grounded in tool execution evidence.' : 'Result formulated directly without tool traces.'),
         domain: 'Verification',
-        status: hasGrounding ? 'SUCCESS' : 'WARNING',
-        metadata: { grounded: hasGrounding }
+        status: hasErrors ? 'WARNING' : (hasGrounding ? 'SUCCESS' : 'WARNING'),
+        metadata: { grounded: hasGrounding, hasErrors, failedToolCount: failedCount }
       }, eventCallback);
 
       if (this.enablePersistence && missionId) {
         // Mark final step completed
-        const finalStepId = stepIdMap.get(4);
+        const finalStepId = stepIdMap.get(planSteps.length);
         if (finalStepId) {
           updateMissionStep(finalStepId, { status: 'COMPLETED', completed_at: new Date().toISOString() });
         }
@@ -699,11 +704,13 @@ CRITICAL INVARIANTS:
         missionId,
         conversationId,
         eventType: 'mission.completed',
-        title: 'Mission Completed',
-        description: `Successfully accomplished objective in ${totalDuration}ms (${executedToolTraces.length} tool calls executed).`,
+        title: hasErrors ? 'Mission Completed with Warnings' : 'Mission Completed',
+        description: hasErrors
+          ? `Mission accomplished with partial tool coverage (${failedCount} tool errors recorded).`
+          : `Successfully accomplished objective in ${totalDuration}ms (${executedToolTraces.length} tool calls executed).`,
         domain: 'Mission',
         status: 'SUCCESS',
-        metadata: { durationMs: totalDuration, toolCallsCount: executedToolTraces.length }
+        metadata: { durationMs: totalDuration, toolCallsCount: executedToolTraces.length, hasErrors, failedToolCount: failedCount }
       }, eventCallback);
     } else {
       if (this.enablePersistence && missionId) {

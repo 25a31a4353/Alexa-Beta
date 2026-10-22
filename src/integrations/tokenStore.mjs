@@ -178,7 +178,20 @@ export function getOAuthTokens(provider) {
   initOAuthTables();
   const db = getDatabase();
   const record = db.prepare('SELECT * FROM oauth_connections WHERE provider = ?').get(provider);
-  if (!record) return null;
+  if (!record) {
+    if (provider === 'google' && process.env.GOOGLE_REFRESH_TOKEN) {
+      return {
+        provider: 'google',
+        accountEmail: process.env.GOOGLE_ACCOUNT_EMAIL || 'shanmukheswaramedicharla@gmail.com',
+        accessToken: null,
+        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+        expiresAt: 0,
+        scopes: [],
+        isExpired: true
+      };
+    }
+    return null;
+  }
 
   try {
     const accessToken = decryptToken(record.access_token_encrypted);

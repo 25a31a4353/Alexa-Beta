@@ -284,6 +284,15 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
         };
       }
 
+      const docAnalyzeArgs = {
+        documentIds: [primaryDocument.documentId || primaryDocument.fileId || primaryDocument.filename || primaryDocument.name || 'doc-roadmap-01'],
+        analysisType: 'all',
+        focus: ['decisions', 'action_items', 'risks', 'preparation_gaps']
+      };
+      if (primaryDocument.content) {
+        docAnalyzeArgs.rawContent = primaryDocument.content;
+      }
+
       return {
         type: 'tool_call',
         rationale: `Found document "${primaryDocument.title || primaryDocument.name}". Analyzing it for key topics, decisions, action items, and risks.`,
@@ -291,11 +300,7 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
           {
             id: `call_${randomUUID().slice(0, 8)}`,
             name: 'document_analyze',
-            arguments: {
-              documentIds: [primaryDocument.documentId || primaryDocument.fileId || primaryDocument.filename || primaryDocument.name || 'doc-roadmap-01'],
-              analysisType: 'all',
-              focus: ['decisions', 'action_items', 'risks', 'preparation_gaps']
-            }
+            arguments: docAnalyzeArgs
           }
         ]
       };
@@ -307,11 +312,16 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
       ? new Date(targetMeeting.startTime).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
       : targetMeeting.startTime;
 
+    const isLocalFallback = calendarSource.includes('Local') || (!hasRealEvents && calendarSource.includes('Local'));
+    const calendarSourceDisplay = isLocalFallback
+      ? `${calendarSource} (Unauthenticated Local Fallback)`
+      : calendarSource;
+
     const brief = [
       `### Meeting Preparation Brief: ${targetMeeting.title}`,
       `**Schedule:** ${scheduleFormatted} via ${targetMeeting.platform}`,
       `**Attendees:** ${targetMeeting.attendees.join(', ')}`,
-      `**Calendar Source:** ${calendarSource}`,
+      `**Calendar Source:** ${calendarSourceDisplay}`,
     ];
 
     if (emailData && emailData.emails && emailData.emails.length > 0) {
