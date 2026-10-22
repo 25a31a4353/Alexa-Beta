@@ -9,3 +9,5 @@ build/
 *.db-shm
 *.db-wal
 *.pdf
+.vscode/
+
