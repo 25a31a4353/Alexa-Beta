@@ -119,16 +119,18 @@ export function registerKnowledgeTools(server) {
     description: 'Deeply analyze specified document(s) to extract key topics, actionable decisions, required action items, risk factors, and preparation guidance for upcoming meetings.',
     inputSchema: {
       documentIds: z.array(z.string()).min(1).describe("List of document IDs or filenames to analyze (e.g. ['doc-roadmap-01'] or ['Q4_Roadmap.pdf'])"),
+      documentTitle: z.string().optional().describe("Human-readable document title"),
       rawContent: z.string().optional().describe("Raw text content or body of external/cloud document to analyze directly"),
       analysisType: z.enum(["key_points", "gap_analysis", "risk_assessment", "action_items", "all"]).default("all").describe("Analysis mode to perform"),
       focus: z.array(z.string()).optional().describe("Specific topics or criteria to extract (e.g. ['decisions', 'action_items', 'risks'])")
     }
-  }, async ({ documentIds, rawContent, analysisType, focus }) => {
+  }, async ({ documentIds, documentTitle, rawContent, analysisType, focus }) => {
     try {
       // Priority 1: If rawContent was passed directly (from Google Drive or external source), analyze it dynamically
       if (rawContent && typeof rawContent === 'string' && rawContent.trim().length > 0) {
         const lines = rawContent.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        const docName = documentIds[0] || 'Cloud Document';
+        const firstLineHeader = lines[0]?.replace(/^[-*#•\d\.]+\s*/, '').trim();
+        const docName = documentTitle || (firstLineHeader && firstLineHeader.length < 80 ? firstLineHeader : null) || documentIds[0] || 'Cloud Document';
 
         const bulletPoints = lines.filter(l => /^[-*•\d\.]/.test(l)).map(l => l.replace(/^[-*•\d\.]+\s*/, ''));
         const textLines = bulletPoints.length > 0 ? bulletPoints : lines;

@@ -286,6 +286,7 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
 
       const docAnalyzeArgs = {
         documentIds: [primaryDocument.documentId || primaryDocument.fileId || primaryDocument.filename || primaryDocument.name || 'doc-roadmap-01'],
+        documentTitle: primaryDocument.title || primaryDocument.name || 'Alexa+ Architecture & Checklist',
         analysisType: 'all',
         focus: ['decisions', 'action_items', 'risks', 'preparation_gaps']
       };
@@ -308,9 +309,17 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
 
     // Stage 5: Grounded Synthesis across all discovered evidence
     const calendarSource = targetMeeting.source || calendarData.source || 'Local MCP Dataset';
-    const scheduleFormatted = targetMeeting.startTime && targetMeeting.startTime.includes('T')
-      ? new Date(targetMeeting.startTime).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
-      : targetMeeting.startTime;
+    let scheduleFormatted = targetMeeting.startTime || 'Tomorrow';
+    try {
+      const d = new Date(targetMeeting.startTime);
+      if (!isNaN(d.getTime())) {
+        scheduleFormatted = d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      } else if (typeof targetMeeting.startTime === 'string' && targetMeeting.startTime.trim().length > 0) {
+        scheduleFormatted = targetMeeting.startTime;
+      }
+    } catch {
+      scheduleFormatted = targetMeeting.startTime || 'Tomorrow';
+    }
 
     const isLocalFallback = calendarSource.includes('Local') || (!hasRealEvents && calendarSource.includes('Local'));
     const calendarSourceDisplay = isLocalFallback
