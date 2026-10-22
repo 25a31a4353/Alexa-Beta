@@ -1231,6 +1231,72 @@ app.get('/api/settings', async (req, res) => {
     res.status(500).json({ error: { code: 'SETTINGS_ERROR', message: err.message } });
   }
 });
+// =========================================================================
+// 9.5 PRIVACY POLICY & TERMS OF SERVICE (FOR GOOGLE OAUTH BRANDING)
+// =========================================================================
+app.get('/privacy', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Privacy Policy - Alexa+ Agentic Platform</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #222; }
+    h1, h2 { color: #0f172a; }
+    .box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy for Alexa+</h1>
+  <p><strong>Effective Date:</strong> October 2026</p>
+  <p>Alexa+ is an autonomous agentic AI orchestration platform designed for the Amazon Developer Hackathon 2026.</p>
+  
+  <div class="box">
+    <h2>1. Data We Access</h2>
+    <p>When you explicitly connect your Google or Microsoft accounts via OAuth 2.0, Alexa+ requests read-only access to:</p>
+    <ul>
+      <li>Your basic profile and email address (for account identity)</li>
+      <li>Google Calendar events (to identify upcoming meetings)</li>
+      <li>Gmail message snippets (to locate relevant agendas and emails)</li>
+      <li>Google Drive documents (to analyze relevant project briefs and specifications)</li>
+    </ul>
+  </div>
+
+  <h2>2. How We Use and Protect Your Data</h2>
+  <ul>
+    <li><strong>In-Memory Mission Processing:</strong> Your data is accessed transiently to fulfill specific tasks you initiate (such as meeting preparation briefs).</li>
+    <li><strong>Zero Model Training:</strong> Your private data is never used to train machine learning models.</li>
+    <li><strong>Authenticated Token Encryption:</strong> All OAuth tokens are encrypted at rest using AES-256-GCM.</li>
+    <li><strong>User Control:</strong> You can disconnect and revoke access at any time directly in the application interface, which immediately purges all stored tokens.</li>
+  </ul>
+
+  <h2>3. Contact</h2>
+  <p>For any questions, contact: <a href="mailto:shanmukheswaramedicharla@gmail.com">shanmukheswaramedicharla@gmail.com</a></p>
+</body>
+</html>`);
+});
+
+app.get('/terms', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Terms of Service - Alexa+ Agentic Platform</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #222; }
+  </style>
+</head>
+<body>
+  <h1>Terms of Service</h1>
+  <p><strong>Effective Date:</strong> October 2026</p>
+  <p>By connecting external services to Alexa+, you authorize the platform to perform read-only queries on your behalf strictly to generate meeting preparation summaries and agentic workflow actions.</p>
+  <p>Contact: <a href="mailto:shanmukheswaramedicharla@gmail.com">shanmukheswaramedicharla@gmail.com</a></p>
+</body>
+</html>`);
+});
+
 
 // =========================================================================
 // 10. STATIC FRONTEND SERVING (VITE PRODUCTION BUNDLE)
