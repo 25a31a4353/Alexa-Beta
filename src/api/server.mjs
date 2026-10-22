@@ -20,6 +20,7 @@ import {
   getActivityEvents,
   listIntegrations
 } from '../db/index.mjs';
+import { PLUGINS_CATALOG } from '../db/pluginsCatalog.mjs';
 
 const API_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const MCP_SERVER_URL = process.env.MCP_SERVER_URL || 'http://127.0.0.1:3001/mcp';
@@ -64,12 +65,20 @@ app.get('/health', async (req, res) => {
     if (healthCheck.ok) mcpStatus = 'online';
   } catch {}
 
+  let databaseStatus = 'healthy';
+  try {
+    getDatabase();
+  } catch {
+    databaseStatus = 'degraded';
+  }
+
   res.json({
     status: 'ok',
     service: 'alexa-plus-application-api',
     port: API_PORT,
     mcpEndpoint: MCP_SERVER_URL,
     mcpStatus,
+    databaseStatus,
     timestamp: new Date().toISOString()
   });
 });
@@ -166,6 +175,7 @@ app.post('/api/missions', async (req, res) => {
           onEvent: (event) => {
             // Dispatch live event to event bus for SSE listeners
             missionEventBus.emit(`event:${mission.id}`, event);
+            missionEventBus.emit('global:events', event);
           }
         });
 
@@ -215,6 +225,7 @@ app.post('/api/missions', async (req, res) => {
           timestamp: new Date().toISOString()
         };
         missionEventBus.emit(`event:${mission.id}`, failEvent);
+        missionEventBus.emit('global:events', failEvent);
         throw execErr;
       } finally {
         if (clientSession?.transport) {
@@ -431,6 +442,56 @@ app.get('/api/missions/:id/stream', (req, res) => {
       cleanup();
     }, 600);
   }
+});
+
+// =========================================================================
+// 4B. GLOBAL APPLICATION REAL-TIME SSE STREAM (TELEMETRY & CAPABILITY EVENTS)
+// =========================================================================
+app.get('/api/events/stream', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*'
+  });
+  res.flushHeaders?.();
+
+  const listener = (event) => {
+    try {
+      res.write(`id: ${event.id || Date.now()}\n`);
+      res.write(`event: ${event.eventType || 'message'}\n`);
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    } catch {}
+  };
+
+  missionEventBus.on('global:events', listener);
+
+  // Initial connection handshake with honest capabilities summary
+  try {
+    const db = getDatabase();
+    const genuineConnected = db.prepare("SELECT COUNT(*) as count FROM integrations WHERE status = 'CONNECTED' AND is_synthetic = 0").get().count;
+    res.write(`event: ready\n`);
+    res.write(`data: ${JSON.stringify({
+      status: 'CONNECTED',
+      timestamp: new Date().toISOString(),
+      genuineConnectedCount: genuineConnected,
+      localCapabilities: ['calendar_get_events', 'knowledge_search', 'document_analyze', 'ping'],
+      mcpHost: '127.0.0.1:3001'
+    })}\n\n`);
+  } catch {}
+
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(`: heartbeat ${Date.now()}\n\n`);
+    } catch {
+      clearInterval(heartbeat);
+    }
+  }, 25000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    missionEventBus.off('global:events', listener);
+  });
 });
 
 // =========================================================================
@@ -923,12 +984,18 @@ app.get('/api/integrations/:id', (req, res) => {
       }
     };
 
-    const capability = capabilityMap[item.id] || {
+    const catalogItem = PLUGINS_CATALOG.find(p => p.id === item.id);
+    const capability = capabilityMap[item.id] || (catalogItem ? {
+      mcpTool: catalogItem.mcpTool || 'None (Planned)',
+      domain: catalogItem.domain || catalogItem.category,
+      description: catalogItem.description,
+      authType: catalogItem.authType || 'OAUTH2_PLANNED'
+    } : {
       mcpTool: 'None',
       domain: item.category,
       description: 'Connector configuration boundary.',
       authType: 'PLANNED'
-    };
+    });
 
     res.json({
       ...item,
@@ -979,6 +1046,14 @@ app.post('/api/integrations/:id/connect', (req, res) => {
         metadata: { integrationId: integId, email: assignedEmail },
         isSynthetic: 0
       });
+
+      missionEventBus.emit('global:events', {
+        id: `act_integ_${Date.now()}`,
+        eventType: 'integration.connected',
+        title: `Integration Connected: ${existing.name}`,
+        metadata: { integrationId: integId, email: assignedEmail },
+        timestamp: new Date().toISOString()
+      });
     } catch {}
 
     const updated = db.prepare('SELECT id, name, category, status, account_email, is_synthetic, last_sync_at FROM integrations WHERE id = ?').get(integId);
@@ -1021,6 +1096,14 @@ app.post('/api/integrations/:id/disconnect', (req, res) => {
         status: 'INFO',
         metadata: { integrationId: integId },
         isSynthetic: 0
+      });
+
+      missionEventBus.emit('global:events', {
+        id: `act_integ_${Date.now()}`,
+        eventType: 'integration.disconnected',
+        title: `Integration Disconnected: ${existing.name}`,
+        metadata: { integrationId: integId },
+        timestamp: new Date().toISOString()
       });
     } catch {}
 
@@ -1093,6 +1176,19 @@ app.get('/api/settings', async (req, res) => {
         llmProvider: hasRealKey ? 'OpenAI Compatible' : 'Not active in current local runtime',
         llmKeyConfigured: hasRealKey
       },
+      awsBedrock: {
+        sdk: '@aws-sdk/client-bedrock-runtime',
+        command: 'ConverseCommand',
+        supportedModels: [
+          'anthropic.claude-3-5-sonnet-20241022-v2:0',
+          'amazon.nova-pro-v1:0'
+        ],
+        credentialsConfigured: !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY),
+        region: process.env.AWS_REGION || 'us-east-1',
+        status: (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY)
+          ? 'Bedrock Live Active'
+          : 'Bedrock Available (Deterministic Local Fallback Active)'
+      },
       mcpRuntime: {
         status: mcpStatus,
         serverUrl: MCP_SERVER_URL,
@@ -1133,9 +1229,10 @@ app.get('*', (req, res, next) => {
 // =========================================================================
 // 11. SERVER STARTUP (WHEN EXECUTED DIRECTLY)
 // =========================================================================
+const HOST = process.env.HOST || '0.0.0.0';
 if (process.argv[1]?.endsWith('server.mjs') && !process.env.TEST_MODE) {
-  app.listen(API_PORT, '127.0.0.1', () => {
-    console.log(`[Application API] Process 1 API running on http://127.0.0.1:${API_PORT}`);
+  app.listen(API_PORT, HOST, () => {
+    console.log(`[Application API] Process 1 API running on http://${HOST}:${API_PORT}`);
     console.log(`[Application API] Connected to MCP Server on ${MCP_SERVER_URL}`);
   });
 }

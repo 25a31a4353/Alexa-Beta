@@ -142,16 +142,63 @@ cd alexa-plus
 npm install
 ```
 
-### Run Automated Test Suite (16 Test Suites)
+### Run Automated Test Suite (17 Test Suites)
 Verify the entire backend, MCP server parity, persistence lifecycle, hostile stress tests, AWS Bedrock integration, and MCP session reaper:
 ```bash
 npm test
 ```
-*All 16 test suites run against the real MCP server and SQLite persistence with 100% pass verification.*
+*All 17 test suites run against the real MCP server and SQLite persistence with 100% pass verification.*
 
-### Starting the Platform
-Open three terminal windows (or run in background):
+---
 
+## 7. Production Deployment (Render Free Web Service)
+
+The platform is engineered for single-command production deployment on cloud web services such as **Render**.
+
+### Unified Production Architecture
+In production, a single container hosts both the internal MCP server and the public Application API:
+- **Public Express Server:** Listens on `0.0.0.0:$PORT` (automatically injected by Render) and serves both the compiled React/Vite web application and all API endpoints.
+- **Internal MCP Server:** Listens privately on `127.0.0.1:3001/mcp` over Streamable HTTP. It is never exposed directly to the public internet.
+- **Client Communication:** The browser communicates strictly with same-origin relative URLs (`/api/...`, `/health`, `/api/events/stream`).
+
+### Render Configuration Values
+| Parameter | Value |
+| :--- | :--- |
+| **Service Type** | Web Service |
+| **Environment / Runtime** | Node (>= 20.x) |
+| **Plan** | Free |
+| **Build Command** | `npm ci && npm run build` |
+| **Start Command** | `npm start` |
+| **Health Check Path** | `/health` |
+
+A preconfigured [`render.yaml`](render.yaml) blueprint is included in the root directory for automated zero-configuration deployment.
+
+### Single-Command Local Production Run
+```bash
+# 1. Compile TypeScript types & Vite web bundle
+npm run build
+
+# 2. Start unified production runtime
+npm start
+```
+*Starts internal MCP on `127.0.0.1:3001` and public web application on `http://0.0.0.0:3000`.*
+
+### Deployment Smoke Test
+Verify a local or live cloud deployment with the non-destructive smoke suite:
+```bash
+# Verify local production instance
+npm run test:smoke
+
+# Verify public deployed instance
+BASE_URL=https://your-alexa-plus.onrender.com npm run test:smoke
+```
+
+### Important Cloud Ephemeral Storage Disclosure
+> [!IMPORTANT]
+> **Ephemeral Filesystem on Render Free:** Render Free instances use an ephemeral filesystem that resets upon spin-down or redeployment. The platform is designed to be **100% reproducible**: when the SQLite database does not exist, `src/db/index.mjs` automatically generates the schema and seeds the complete demo knowledge base and tomorrow's calendar schedule relative to the current runtime date. No pre-existing local machine state or database files are required.
+
+### Local Multi-Process Development Setup (Optional)
+If you prefer developing with live Vite HMR across separate terminals:
 ```bash
 # Terminal 1: Start Self-Hosted MCP Server (Port 3001)
 npm run mcp:server
@@ -159,15 +206,13 @@ npm run mcp:server
 # Terminal 2: Start Application API & Agent Orchestrator (Port 3000)
 npm run api:server
 
-# Terminal 3: Start Web Experience (Port 5173)
+# Terminal 3: Start Vite Dev Server (Port 5173)
 npm run dev
 ```
 
-Open your browser at: **`http://127.0.0.1:5173`**
-
 ---
 
-## 7. The Hero Demo Workflow
+## 8. The Hero Demo Workflow
 
 1. Navigate to **Home** (`http://127.0.0.1:5173/#/home`).
 2. Select the **Deep Research** or **Autonomous** execution mode.
@@ -183,13 +228,13 @@ Open your browser at: **`http://127.0.0.1:5173`**
 
 ---
 
-## 8. Hackathon Window Development Disclosure
+## 9. Hackathon Window Development Disclosure
 
 All agent orchestration algorithms, Streamable HTTP MCP server modules, SQLite persistence schemas, SSE streaming pipelines, and React frontend views were designed and implemented specifically during the hackathon submission window.
 
 ---
 
-## 9. Mini-Challenges Qualification
+## 10. Mini-Challenges Qualification
 
 ### A. AWS Builder Mini-Challenge (Amazon Bedrock)
 - **Service Integrated:** **Amazon Bedrock** via `@aws-sdk/client-bedrock-runtime`.
@@ -204,6 +249,6 @@ All agent orchestration algorithms, Streamable HTTP MCP server modules, SQLite p
 
 ---
 
-## 10. License
+## 11. License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.

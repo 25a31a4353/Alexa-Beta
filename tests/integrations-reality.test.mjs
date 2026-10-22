@@ -31,8 +31,8 @@ async function runTest() {
   assert.equal(data.genuineConnectedCount, 0, 'API genuineConnectedCount must be 0');
   assert.equal(data.connectedCount, 0, 'API connectedCount must be 0');
   assert.equal(data.demoCount, 2, 'API demoCount must be 2');
-  assert.equal(data.availableCount, 7, 'API availableCount must be 7');
-  console.log(`[PASS] API returned honest metrics: genuineConnectedCount=${data.genuineConnectedCount}, demoCount=${data.demoCount}, total=${data.total}.`);
+  assert.equal(data.availableCount, dbIntegrations.length - demoInDb - genuineInDb, 'API availableCount must match catalog count');
+  console.log(`[PASS] API returned honest metrics: genuineConnectedCount=${data.genuineConnectedCount}, demoCount=${data.demoCount}, total=${data.total}, availableCount=${data.availableCount}.`);
 
   // Step 3: Security & Secrets Redaction Audit
   console.log('\n[Step 3] Auditing API response for secret exposure / credentials...');

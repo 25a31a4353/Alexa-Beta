@@ -3,14 +3,20 @@
   "version": "1.0.0",
   "description": "Amazon Alexa+ Hackathon 2026 - Agentic Mission Execution Platform with Real MCP",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "src/index.mjs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
+    "start": "node src/index.mjs",
     "dev": "vite",
+    "build": "tsc && vite build",
     "build:web": "vite build",
     "preview": "vite preview",
     "mcp:server": "node src/mcp/server.mjs",
     "api:server": "node src/api/server.mjs",
     "mcp:test": "node tests/agent-orchestrator.test.mjs",
+    "test:smoke": "node tests/deployment-smoke.test.mjs",
     "test:wire": "node tests/openai-provider-wire.test.mjs",
     "test:decoupling": "node tests/orchestrator-provider-driven.test.mjs",
     "test:lifecycle": "node tests/persistence-lifecycle.test.mjs",
@@ -24,8 +30,7 @@
     "test:hostile": "node tests/hostile-stage7-audit.test.mjs",
     "test:bedrock": "node tests/aws-bedrock-integration.test.mjs",
     "test:reaper": "node packages/mcp-session-reaper/test.js",
-    "test": "node tests/agent-orchestrator.test.mjs && node tests/orchestrator-provider-driven.test.mjs && node tests/openai-provider-wire.test.mjs && node tests/multi-tool-chain.test.mjs && node tests/calendar-mcp.test.mjs && node tests/persistence-lifecycle.test.mjs && node tests/application-api-e2e.test.mjs && node tests/mission-workspace-real.test.mjs && node tests/mcp-tools-parity.test.mjs && node tests/activity-persistence.test.mjs && node tests/knowledge-mcp-parity.test.mjs && node tests/integrations-reality.test.mjs && node tests/settings-reality.test.mjs && node tests/hostile-stage7-audit.test.mjs && node tests/aws-bedrock-integration.test.mjs && node packages/mcp-session-reaper/test.js",
-    "build": "tsc"
+    "test": "node tests/agent-orchestrator.test.mjs && node tests/orchestrator-provider-driven.test.mjs && node tests/openai-provider-wire.test.mjs && node tests/multi-tool-chain.test.mjs && node tests/calendar-mcp.test.mjs && node tests/persistence-lifecycle.test.mjs && node tests/application-api-e2e.test.mjs && node tests/mission-workspace-real.test.mjs && node tests/mcp-tools-parity.test.mjs && node tests/activity-persistence.test.mjs && node tests/knowledge-mcp-parity.test.mjs && node tests/integrations-reality.test.mjs && node tests/settings-reality.test.mjs && node tests/hostile-stage7-audit.test.mjs && node tests/aws-bedrock-integration.test.mjs && node packages/mcp-session-reaper/test.js"
   },
   "keywords": [
     "alexa-plus",

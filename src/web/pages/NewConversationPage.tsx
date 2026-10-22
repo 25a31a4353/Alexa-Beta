@@ -356,7 +356,7 @@ export const NewConversationPage: React.FC = () => {
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 text-amber-900 border border-amber-200 shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            <span>AWS Builder: Bedrock Converse Active</span>
+            <span>AWS Builder: Bedrock Converse (Fallback Ready)</span>
           </span>
           <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-900 border border-emerald-200 shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />

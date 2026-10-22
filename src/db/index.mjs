@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { PLUGINS_CATALOG } from './pluginsCatalog.mjs';
 
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
@@ -434,24 +435,22 @@ Comprehensive architecture for multi-tool orchestration, Streamable HTTP MCP con
     );
   `);
 
-  // Seed standard integrations if empty
-  const integrationCount = db.prepare('SELECT COUNT(*) as count FROM integrations').get().count;
-  if (integrationCount === 0) {
-    const insertIntegration = db.prepare(`
-      INSERT INTO integrations (id, name, category, status, account_email, is_synthetic, last_sync_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
+  // Seed standard integrations and complete 17-category plugins catalog
+  const insertIntegration = db.prepare(`
+    INSERT OR IGNORE INTO integrations (id, name, category, status, account_email, is_synthetic, last_sync_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
 
-    // Explicitly labeled DEMO/AVAILABLE states (NEVER fake genuine unauthenticated connection)
-    insertIntegration.run('google-calendar', 'Google Calendar', 'Productivity', 'DEMO', 'shanmukheswaramedicharla@gmail.com', 1, new Date().toISOString());
-    insertIntegration.run('google-drive', 'Google Drive', 'Knowledge', 'DEMO', 'shanmukheswaramedicharla@gmail.com', 1, new Date().toISOString());
-    insertIntegration.run('gmail', 'Gmail', 'Communication', 'AVAILABLE', null, 1, null);
-    insertIntegration.run('notion', 'Notion', 'Knowledge', 'AVAILABLE', null, 1, null);
-    insertIntegration.run('slack', 'Slack', 'Communication', 'NOT_CONNECTED', null, 1, null);
-    insertIntegration.run('github', 'GitHub', 'Development', 'NOT_CONNECTED', null, 1, null);
-    insertIntegration.run('google-maps', 'Google Maps', 'Data', 'NOT_CONNECTED', null, 1, null);
-    insertIntegration.run('outlook', 'Microsoft Outlook', 'Communication', 'NOT_CONNECTED', null, 1, null);
-    insertIntegration.run('figma', 'Figma', 'Development', 'NOT_CONNECTED', null, 1, null);
+  for (const item of PLUGINS_CATALOG) {
+    insertIntegration.run(
+      item.id,
+      item.name,
+      item.category,
+      item.status || 'AVAILABLE',
+      item.account_email || null,
+      item.is_synthetic ?? 1,
+      item.status === 'DEMO' ? new Date().toISOString() : null
+    );
   }
 }
 

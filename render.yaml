@@ -1,0 +1,21 @@
+# =============================================================================
+# Render Web Service Blueprint for Amazon Alexa+ Hackathon Platform
+# =============================================================================
+# Deploys a unified Web Service running both the Model Context Protocol (MCP)
+# server internally and the public Application API / React web application.
+# =============================================================================
+
+services:
+  - type: web
+    name: alexa-plus
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
