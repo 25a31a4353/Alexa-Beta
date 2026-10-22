@@ -72,11 +72,37 @@ export const PLUGINS_DATA: PluginItem[] = [
     description: 'Email client, message drafting, inbox thread search, and automated follow-ups.',
     status: 'AVAILABLE',
     is_synthetic: 1,
-    mcpTool: 'gmail_query_inbox (Planned)',
+    mcpTool: 'gmail_search / gmail_get_message',
     domain: 'Communication / Email',
     authType: 'OAUTH2',
     iconBg: '#FFFFFF',
     brandColor: '#EA4335'
+  },
+  {
+    id: 'outlook',
+    name: 'Microsoft Outlook',
+    category: 'Popular',
+    description: 'Real-time email search, message retrieval, and inbox preparation intelligence via Microsoft Graph.',
+    status: 'AVAILABLE',
+    is_synthetic: 1,
+    mcpTool: 'outlook_search / outlook_get_message',
+    domain: 'Communication / Email',
+    authType: 'OAUTH2',
+    iconBg: '#FFFFFF',
+    brandColor: '#0078D4'
+  },
+  {
+    id: 'microsoft-calendar',
+    name: 'Microsoft 365 Calendar',
+    category: 'Popular',
+    description: 'Corporate calendar schedule inspection, event lookup, and attendee sync via Microsoft Graph.',
+    status: 'AVAILABLE',
+    is_synthetic: 1,
+    mcpTool: 'outlook_calendar_get_events',
+    domain: 'Productivity / Calendar',
+    authType: 'OAUTH2',
+    iconBg: '#FFFFFF',
+    brandColor: '#0078D4'
   },
   {
     id: 'reddit',

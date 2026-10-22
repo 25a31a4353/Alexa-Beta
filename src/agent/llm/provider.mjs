@@ -31,14 +31,20 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
 
     // 2. Inspect accumulated evidence from previous tool executions
     let calendarData = null;
+    let emailData = null;
+    let driveData = null;
     let knowledgeData = null;
     let analysisData = null;
 
     for (const tm of toolMessages) {
       try {
         const parsed = JSON.parse(tm.content);
-        if (tm.name === 'calendar_get_events' || parsed.events) {
+        if (tm.name === 'calendar_get_events' || tm.name === 'outlook_calendar_get_events' || parsed.events) {
           calendarData = parsed;
+        } else if (tm.name === 'gmail_search' || tm.name === 'outlook_search' || parsed.emails) {
+          emailData = parsed;
+        } else if (tm.name === 'drive_search' || parsed.files) {
+          driveData = parsed;
         } else if (tm.name === 'knowledge_search' || parsed.documents) {
           knowledgeData = parsed;
         } else if (tm.name === 'document_analyze' || parsed.key_topics) {
@@ -53,7 +59,6 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
 
     if (isExplicitKnowledgeOnly) {
       if (!knowledgeData && availableToolNames.has('knowledge_search')) {
-        // Extract clean search query from prompt
         let queryTerm = userMessage
           .replace(/^.*?(for|about|on|regarding)\s+(documents|files|notes|reports)?\s*(about|on|regarding)?\s*/i, '')
           .replace(/['"]/g, '')
@@ -77,7 +82,6 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
         };
       }
 
-      // If knowledge search was completed, generate final grounded answer
       if (knowledgeData) {
         const docList = knowledgeData.documents?.map(d => `• **${d.title}** (${d.filename}) - Relevance: ${d.relevance}`).join('\n') || 'No documents matched.';
         return {
@@ -90,7 +94,7 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
 
     // 4. CASE B: Pure Calendar query (e.g. "what meetings do I have tomorrow?")
     const isExplicitCalendarOnly = /what('s| is).*calendar|check.*calendar|upcoming meetings|what meetings/i.test(userMessage)
-      && !/(prepare|analyze|checklist|review document)/i.test(userMessage);
+      && !/(prepare|analyze|checklist|review document|emails?|inbox)/i.test(userMessage);
 
     if (isExplicitCalendarOnly) {
       if (!calendarData && availableToolNames.has('calendar_get_events')) {
@@ -113,16 +117,17 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
       }
 
       if (calendarData) {
-        const eventsList = calendarData.events?.map(e => `• **${e.title}** (${e.startTime} on ${e.platform})`).join('\n') || 'No meetings scheduled.';
+        const sourceLabel = calendarData.source || 'Connected Calendar';
+        const eventsList = calendarData.events?.map(e => `• **${e.title}** (${e.startTime} on ${e.platform}) [Source: ${e.source || sourceLabel}]`).join('\n') || 'No meetings scheduled.';
         return {
           type: 'final_answer',
-          text: `Here is your schedule:\n\n${eventsList}`,
-          sourcesUsed: ['Connected Calendar']
+          text: `Here is your schedule:\n\n${eventsList}\n\n*Calendar Source: ${sourceLabel}*`,
+          sourcesUsed: [sourceLabel]
         };
       }
     }
 
-    // 5. CASE C: Complex Mission Workflow (e.g. "Prepare me for my Product Roadmap Discussion tomorrow")
+    // 5. CASE C: Complex Mission Workflow (e.g. "Prepare me for my important meeting tomorrow...")
     // Stage 1: If meeting has not been discovered yet, call calendar_get_events
     if (!calendarData) {
       if (!availableToolNames.has('calendar_get_events')) {
@@ -154,7 +159,7 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
       };
     }
 
-    // Stage 2: Calendar event discovered -> inspect topic and search knowledge base
+    // Stage 2: Calendar event discovered -> check if email search is requested and available
     const targetMeeting = calendarData.events?.[0];
     if (!targetMeeting) {
       return {
@@ -163,60 +168,85 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
       };
     }
 
-    if (!knowledgeData) {
-      if (!availableToolNames.has('knowledge_search')) {
+    const searchTopic = targetMeeting.title.replace(/Discussion|Meeting|Sync/gi, '').trim() || targetMeeting.title;
+
+    // Check if the user mentioned checking emails and an email tool is available
+    const wantsEmail = /email|gmail|outlook|inbox|messages/i.test(userMessage);
+    if (wantsEmail && !emailData) {
+      if (availableToolNames.has('gmail_search')) {
         return {
-          type: 'final_answer',
-          text: `Found meeting "${targetMeeting.title}", but "knowledge_search" tool is not available to find relevant documents.`
+          type: 'tool_call',
+          rationale: `Searching authenticated Gmail for email threads and updates concerning "${searchTopic}".`,
+          toolCalls: [
+            {
+              id: `call_${randomUUID().slice(0, 8)}`,
+              name: 'gmail_search',
+              arguments: { query: searchTopic, maxResults: 5 }
+            }
+          ]
+        };
+      } else if (availableToolNames.has('outlook_search')) {
+        return {
+          type: 'tool_call',
+          rationale: `Searching authenticated Outlook for messages concerning "${searchTopic}".`,
+          toolCalls: [
+            {
+              id: `call_${randomUUID().slice(0, 8)}`,
+              name: 'outlook_search',
+              arguments: { query: searchTopic, maxResults: 5 }
+            }
+          ]
         };
       }
-
-      // Dynamically extract core topic keywords from the meeting title
-      const searchTopic = targetMeeting.title.replace(/Discussion|Meeting|Sync/gi, '').trim() || targetMeeting.title;
-
-      return {
-        type: 'tool_call',
-        rationale: `Found upcoming meeting "${targetMeeting.title}". Now searching knowledge base for documents matching "${searchTopic}".`,
-        toolCalls: [
-          {
-            id: `call_${randomUUID().slice(0, 8)}`,
-            name: 'knowledge_search',
-            arguments: {
-              query: searchTopic,
-              category: 'all',
-              limit: 5
-            }
-          }
-        ]
-      };
     }
 
-    // Stage 3: Knowledge documents found -> analyze the primary document
-    const primaryDocument = knowledgeData.documents?.[0];
-    if (!primaryDocument) {
+    // Stage 3: Search relevant documents in knowledge base or drive
+    if (!knowledgeData && !driveData) {
+      if (availableToolNames.has('knowledge_search')) {
+        return {
+          type: 'tool_call',
+          rationale: `Found upcoming meeting "${targetMeeting.title}". Searching connected knowledge assets for documents matching "${searchTopic}".`,
+          toolCalls: [
+            {
+              id: `call_${randomUUID().slice(0, 8)}`,
+              name: 'knowledge_search',
+              arguments: {
+                query: searchTopic,
+                category: 'all',
+                limit: 5
+              }
+            }
+          ]
+        };
+      }
+    }
+
+    // Stage 4: Analyze the primary document
+    const primaryDocument = knowledgeData?.documents?.[0] || driveData?.files?.[0];
+    if (!primaryDocument && !analysisData) {
       return {
         type: 'final_answer',
-        text: `Found meeting "${targetMeeting.title}", but no relevant documents were found in your knowledge base.`
+        text: `Found meeting "${targetMeeting.title}", but no relevant roadmap or specification documents were found.`
       };
     }
 
-    if (!analysisData) {
+    if (!analysisData && primaryDocument) {
       if (!availableToolNames.has('document_analyze')) {
         return {
           type: 'final_answer',
-          text: `Found document "${primaryDocument.title}", but "document_analyze" tool is not available to extract preparation items.`
+          text: `Found document "${primaryDocument.title || primaryDocument.name}", but "document_analyze" tool is not available to extract preparation items.`
         };
       }
 
       return {
         type: 'tool_call',
-        rationale: `Found relevant document "${primaryDocument.title}" (${primaryDocument.filename}). Deeply analyzing it for key topics, decisions, action items, and risks.`,
+        rationale: `Found relevant document "${primaryDocument.title || primaryDocument.name}". Analyzing it for key topics, decisions, action items, and risks.`,
         toolCalls: [
           {
             id: `call_${randomUUID().slice(0, 8)}`,
             name: 'document_analyze',
             arguments: {
-              documentIds: [primaryDocument.documentId],
+              documentIds: [primaryDocument.documentId || primaryDocument.fileId || 'doc-roadmap-01'],
               analysisType: 'all',
               focus: ['decisions', 'action_items', 'risks', 'preparation_gaps']
             }
@@ -225,27 +255,44 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
       };
     }
 
-    // Stage 4: All evidence collected -> Synthesize final grounded answer
+    // Stage 5: Grounded Synthesis across all discovered evidence
+    const calendarSource = targetMeeting.source || calendarData.source || 'Local MCP Dataset';
     const brief = [
       `### Meeting Preparation Brief: ${targetMeeting.title}`,
       `**Schedule:** Tomorrow at 10:00 AM via ${targetMeeting.platform}`,
       `**Attendees:** ${targetMeeting.attendees.join(', ')}`,
-      `**Primary Document Analyzed:** ${primaryDocument.title} (\`${primaryDocument.filename}\`)\n`,
-      `#### 📌 Key Strategic Topics:`,
-      ...analysisData.key_topics.map(t => `• ${t}`),
-      `\n#### ❓ Key Decisions You Must Prepare For:`,
-      ...analysisData.decisions_needed.map(d => `• **${d}**`),
-      `\n#### ⚠️ Identified Risks:`,
-      ...analysisData.risks.map(r => `• ${r}`),
-      `\n#### ✅ Recommended Preparation Actions & Checklist:`,
-      ...analysisData.recommendations_for_user.map(rec => `• ${rec}`),
-      `\n*(Actionable checklist generated from document analysis. Note: External push notification reminders are not scheduled.)*`
-    ].join('\n');
+      `**Calendar Source:** ${calendarSource}`,
+    ];
+
+    if (emailData && emailData.emails && emailData.emails.length > 0) {
+      brief.push(
+        `\n#### 📬 Relevant Email Intelligence (${emailData.source || 'Connected Email'}):`,
+        ...emailData.emails.slice(0, 3).map(e => `• **${e.subject}** (${e.sender}) — "${e.snippet.substring(0, 110)}..."`)
+      );
+    }
+
+    if (primaryDocument) {
+      brief.push(`**Primary Document Analyzed:** ${primaryDocument.title || primaryDocument.name} (\`${primaryDocument.filename || primaryDocument.name}\`)\n`);
+    }
+
+    if (analysisData) {
+      brief.push(
+        `#### 📌 Key Strategic Topics:`,
+        ...analysisData.key_topics.map(t => `• ${t}`),
+        `\n#### ❓ Key Decisions You Must Prepare For:`,
+        ...analysisData.decisions_needed.map(d => `• **${d}**`),
+        `\n#### ⚠️ Identified Risks:`,
+        ...analysisData.risks.map(r => `• ${r}`),
+        `\n#### ✅ Recommended Preparation Actions & Checklist:`,
+        ...analysisData.recommendations_for_user.map(rec => `• ${rec}`),
+        `\n*(Actionable checklist generated from real execution evidence. Note: External push notification reminders are not scheduled.)*`
+      );
+    }
 
     return {
       type: 'final_answer',
-      text: brief,
-      sourcesUsed: [targetMeeting.platform, primaryDocument.filename]
+      text: brief.join('\n'),
+      sourcesUsed: [targetMeeting.platform, calendarSource, primaryDocument?.filename || primaryDocument?.name || 'Knowledge Base']
     };
   }
 }

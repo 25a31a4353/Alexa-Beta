@@ -1,16 +1,23 @@
 import { z } from 'zod';
 import { getDatabase } from '../../db/index.mjs';
+import { getGoogleCalendarEvents } from '../../integrations/google.mjs';
+import { getMicrosoftCalendarEvents } from '../../integrations/microsoft.mjs';
+import { getOAuthTokens } from '../../integrations/tokenStore.mjs';
 
 /**
- * Register the Calendar tool domain onto an McpServer instance
+ * Register Calendar tools onto an McpServer instance.
+ * Automatically leverages live Google Calendar or Microsoft Calendar if authenticated,
+ * falling back transparently to the Local MCP Dataset if no cloud OAuth connection is active.
+ *
  * @param {import('@modelcontextprotocol/sdk/server/mcp.js').McpServer} server
  */
 export function registerCalendarTools(server) {
+  // 1. Primary Unified Calendar Tool
   server.registerTool('calendar_get_events', {
-    description: 'Retrieve upcoming meetings, calendar events, schedules, platforms, and attendee details from the connected calendar within an ISO 8601 time window.',
+    description: 'Retrieve upcoming meetings, calendar events, schedules, platforms, and attendee details. Automatically routes to connected Google Calendar or Microsoft 365 Calendar if authorized, or uses the Local MCP Dataset fallback.',
     inputSchema: {
-      startDate: z.string().describe("ISO 8601 start timestamp filter (e.g. '2026-10-13T00:00:00.000Z')"),
-      endDate: z.string().describe("ISO 8601 end timestamp filter (e.g. '2026-10-13T23:59:59.999Z')"),
+      startDate: z.string().describe("ISO 8601 start timestamp filter (e.g. '2026-10-23T00:00:00.000Z')"),
+      endDate: z.string().describe("ISO 8601 end timestamp filter (e.g. '2026-10-23T23:59:59.999Z')"),
       query: z.string().optional().describe("Optional search keyword to filter meeting title, description, or attendees")
     }
   }, async ({ startDate, endDate, query }) => {
@@ -20,34 +27,63 @@ export function registerCalendarTools(server) {
 
     if (isNaN(startTime) || isNaN(endTime)) {
       return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              error: 'INVALID_TIMESTAMP',
-              message: 'Both startDate and endDate must be valid ISO 8601 date strings.'
-            })
-          }
-        ],
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            error: 'INVALID_TIMESTAMP',
+            message: 'Both startDate and endDate must be valid ISO 8601 date strings.'
+          })
+        }],
         isError: true
       };
     }
 
     if (startTime > endTime) {
       return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              error: 'INVALID_DATE_RANGE',
-              message: `startDate (${startDate}) cannot be after endDate (${endDate}).`
-            })
-          }
-        ],
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            error: 'INVALID_DATE_RANGE',
+            message: `startDate (${startDate}) cannot be after endDate (${endDate}).`
+          })
+        }],
         isError: true
       };
     }
 
+    // A. Priority 1: Real Google Calendar OAuth
+    const googleTokens = getOAuthTokens('google');
+    if (googleTokens && googleTokens.accessToken) {
+      try {
+        const liveGoogleEvents = await getGoogleCalendarEvents({ startDate, endDate, query });
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify(liveGoogleEvents, null, 2)
+          }]
+        };
+      } catch (googleErr) {
+        console.warn('[Calendar MCP] Google Calendar API call failed, falling back:', googleErr.message);
+      }
+    }
+
+    // B. Priority 2: Real Microsoft 365 Calendar OAuth
+    const msTokens = getOAuthTokens('microsoft');
+    if (msTokens && msTokens.accessToken) {
+      try {
+        const liveMsEvents = await getMicrosoftCalendarEvents({ startDate, endDate, query });
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify(liveMsEvents, null, 2)
+          }]
+        };
+      } catch (msErr) {
+        console.warn('[Calendar MCP] Microsoft Calendar API call failed, falling back:', msErr.message);
+      }
+    }
+
+    // C. Grounded Fallback: Local MCP Dataset
     try {
       const db = getDatabase();
 
@@ -73,10 +109,14 @@ export function registerCalendarTools(server) {
         title: row.title,
         startTime: row.start_time,
         endTime: row.end_time,
+        timezone: 'UTC',
         platform: row.platform,
+        location: null,
         attendees: JSON.parse(row.attendees || '[]'),
+        organizer: null,
         description: row.description,
-        hasAgenda: Boolean(row.has_agenda)
+        source: 'Local MCP Dataset',
+        provider: 'local_sqlite'
       }));
 
       const resultPayload = {
@@ -86,28 +126,57 @@ export function registerCalendarTools(server) {
           endDate: new Date(endTime).toISOString()
         },
         queryFilter: query || null,
+        source: 'Local MCP Dataset',
+        provider: 'local_sqlite',
         events
       };
 
       return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(resultPayload, null, 2)
-          }
-        ]
+        content: [{
+          type: 'text',
+          text: JSON.stringify(resultPayload, null, 2)
+        }]
       };
     } catch (err) {
       return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              error: 'DATABASE_QUERY_ERROR',
-              message: err.message
-            })
-          }
-        ],
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            error: 'CALENDAR_QUERY_ERROR',
+            message: err.message
+          })
+        }],
+        isError: true
+      };
+    }
+  });
+
+  // 2. Dedicated Microsoft 365 Calendar Tool
+  server.registerTool('outlook_calendar_get_events', {
+    description: 'Retrieve corporate calendar events directly from authenticated Microsoft 365 Calendar via Microsoft Graph API.',
+    inputSchema: {
+      startDate: z.string().describe("ISO 8601 start timestamp filter"),
+      endDate: z.string().describe("ISO 8601 end timestamp filter"),
+      query: z.string().optional().describe("Optional search keyword")
+    }
+  }, async ({ startDate, endDate, query }) => {
+    try {
+      const result = await getMicrosoftCalendarEvents({ startDate, endDate, query });
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }]
+      };
+    } catch (err) {
+      return {
+        content: [{
+          type: 'text',
+          text: JSON.stringify({
+            error: 'MICROSOFT_CALENDAR_UNAVAILABLE',
+            message: err.message
+          })
+        }],
         isError: true
       };
     }

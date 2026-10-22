@@ -94,6 +94,16 @@ export const OutlookLogo: React.FC<{ className?: string }> = ({ className = 'w-7
   </svg>
 );
 
+// 8b. Microsoft 365 Calendar
+export const MicrosoftCalendarLogo: React.FC<{ className?: string }> = ({ className = 'w-7 h-7' }) => (
+  <svg className={className} viewBox="0 0 48 48" fill="none">
+    <rect width="48" height="48" rx="10" fill="#0078D4" />
+    <rect x="10" y="12" width="28" height="26" rx="4" fill="#FFFFFF" opacity="0.95" />
+    <path d="M10 16C10 13.8 11.8 12 14 12H34C36.2 12 38 13.8 38 16V20H10V16Z" fill="#107C41" />
+    <text x="24" y="33" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#0078D4" fontFamily="system-ui, sans-serif">365</text>
+  </svg>
+);
+
 // 9. Reddit
 export const RedditLogo: React.FC<{ className?: string }> = ({ className = 'w-7 h-7' }) => (
   <svg className={className} viewBox="0 0 48 48" fill="none">
@@ -408,6 +418,9 @@ export function getIntegrationLogo(id: string, name?: string): React.FC<{ classN
     case 'microsoft-outlook':
     case 'ms-outlook':
       return OutlookLogo;
+    case 'microsoft-calendar':
+    case 'microsoft-365-calendar':
+      return MicrosoftCalendarLogo;
     case 'reddit':
       return RedditLogo;
     case 'spotify':

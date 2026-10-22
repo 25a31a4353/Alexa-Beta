@@ -143,6 +143,24 @@ async function runSmokeTests() {
     process.exit(1);
   }
 
+  // 7. OAuth Integration Health Checks
+  console.log('[Test 7] Probing Real Provider Health Endpoints...');
+  total++;
+  const providersToCheck = ['google-calendar', 'gmail', 'google-drive', 'outlook'];
+  try {
+    for (const pId of providersToCheck) {
+      const res = await fetch(`${BASE_URL}/api/integrations/${pId}/health`);
+      if (!res.ok) throw new Error(`Health probe for ${pId} returned HTTP ${res.status}`);
+      const health = await res.json();
+      console.log(`       - ${pId}: status=${health.status}, account=${health.accountEmail || 'none'}, error=${health.error || 'none'}`);
+    }
+    console.log('[PASS] Real provider health endpoints responded with honest status telemetry.\n');
+    passed++;
+  } catch (err) {
+    console.error(`[FAIL] Provider health check failed: ${err.message}\n`);
+    process.exit(1);
+  }
+
   console.log('========================================================================');
   console.log(`DEPLOYMENT SMOKE TEST PASSED: ${passed}/${total} TESTS (100% SUCCESS)`);
   console.log('Application is healthy, responsive, and deployment-ready.');
@@ -150,3 +168,4 @@ async function runSmokeTests() {
 }
 
 runSmokeTests();
+

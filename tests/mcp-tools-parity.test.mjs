@@ -82,19 +82,31 @@ async function runMcpToolsParityTest() {
   console.log('[PASS] Verified: ToolsPage.tsx uses dynamic listTools() and has no ALL_TOOLS array.');
 
   // ---------------------------------------------------------------------------
-  // STEP 5: Verify Exactly 4 Current Executable Tools Exist
+  // STEP 5: Verify Authoritative Tools Exist dynamically
   // ---------------------------------------------------------------------------
-  console.log('\n[Step 5] Checking authoritative 4-tool constraint...');
-  const expectedTools = ['calendar_get_events', 'document_analyze', 'knowledge_search', 'ping'];
+  console.log('\n[Step 5] Checking authoritative tool registry...');
+  const expectedTools = [
+    'calendar_get_events',
+    'outlook_calendar_get_events',
+    'gmail_search',
+    'gmail_get_message',
+    'drive_search',
+    'drive_get_file',
+    'outlook_search',
+    'outlook_get_message',
+    'knowledge_search',
+    'document_analyze',
+    'ping'
+  ];
   for (const expected of expectedTools) {
     if (!apiNames.includes(expected)) {
       throw new Error(`[FAIL] Expected MCP tool missing: "${expected}"`);
     }
   }
-  if (apiNames.length !== 4) {
-    throw new Error(`[FAIL] Expected exactly 4 executable tools, got: ${apiNames.length}`);
+  if (apiNames.length < 11) {
+    throw new Error(`[FAIL] Expected at least 11 executable tools, got: ${apiNames.length}`);
   }
-  console.log('[PASS] Exactly 4 authoritative tools registered and verified.');
+  console.log(`[PASS] All ${apiNames.length} authoritative tools registered and verified.`);
 
   console.log('\n========================================================================');
   console.log('ALL MCP TOOLS PARITY TESTS PASSED (100%)');

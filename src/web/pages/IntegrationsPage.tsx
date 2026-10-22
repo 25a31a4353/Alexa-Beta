@@ -95,6 +95,24 @@ export const IntegrationsPage: React.FC = () => {
   useEffect(() => {
     fetchIntegrations();
 
+    // Check for OAuth callback status in URL hash
+    const hash = window.location.hash || '';
+    if (hash.includes('connected=google')) {
+      setConnectMessage('Successfully authenticated with Google OAuth! Google Calendar, Gmail, and Drive are now active.');
+      window.history.replaceState(null, '', window.location.pathname + '#/integrations');
+      fetchIntegrations();
+    } else if (hash.includes('connected=microsoft')) {
+      setConnectMessage('Successfully authenticated with Microsoft 365 OAuth! Microsoft Outlook and Calendar are now active.');
+      window.history.replaceState(null, '', window.location.pathname + '#/integrations');
+      fetchIntegrations();
+    } else if (hash.includes('error=')) {
+      const match = hash.match(/error=([^&]+)/);
+      if (match) {
+        setError(`OAuth Authorization Error: ${decodeURIComponent(match[1])}`);
+      }
+      window.history.replaceState(null, '', window.location.pathname + '#/integrations');
+    }
+
     // Subscribe to real-time application telemetry via global SSE
     let es: EventSource | null = null;
     try {
@@ -224,15 +242,15 @@ export const IntegrationsPage: React.FC = () => {
     setIsConnecting(true);
     setConnectMessage(null);
     try {
-      await connectIntegration(id, {
-        apiKey: apiKeyInput,
-        email: accountEmailInput
-      });
-      setConnectMessage('Plugin successfully connected and registered with SQLite!');
-      fetchIntegrations();
-      if (selectedPlugin && selectedPlugin.id === id) {
-        setSelectedPlugin({ ...selectedPlugin, status: 'CONNECTED' });
+      if (id.startsWith('google') || id === 'gmail') {
+        window.location.href = `/api/integrations/google/authorize?integrationId=${encodeURIComponent(id)}`;
+        return;
       }
+      if (id === 'outlook' || id.startsWith('microsoft')) {
+        window.location.href = `/api/integrations/microsoft/authorize?integrationId=${encodeURIComponent(id)}`;
+        return;
+      }
+      setConnectMessage('This connector is cataloged for enterprise roadmap rollout.');
     } catch (err: any) {
       setConnectMessage(`Connection failed: ${err.message}`);
     } finally {
@@ -628,25 +646,18 @@ export const IntegrationsPage: React.FC = () => {
               )}
 
               {/* Connection Controls */}
-              {selectedPlugin.status === 'DEMO' ? (
-                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 space-y-1">
-                  <p className="font-semibold flex items-center gap-1.5 text-amber-900">
-                    <Info className="w-4 h-4 text-amber-600" />
-                    Built-in MCP Runtime Feed (Local :3001)
-                  </p>
-                  <p className="text-[11px] text-amber-800/90 leading-relaxed">
-                    This feed is directly serviced by the self-hosted MCP Server on port 3001 and local SQLite tables. It executes in all autonomous missions with zero third-party cloud credential dependency.
-                  </p>
-                </div>
-              ) : selectedPlugin.status === 'CONNECTED' ? (
+              {selectedPlugin.status === 'CONNECTED' ? (
                 <div className="space-y-3">
-                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
                     <p className="font-semibold flex items-center gap-1.5 text-emerald-900">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      Active Connector Registered
+                      Live OAuth 2.0 Connection Active
                     </p>
-                    <p className="text-[11px] text-emerald-700 mt-0.5">
-                      Connected with account: <span className="font-mono">{selectedPlugin.account_email || accountEmailInput}</span>
+                    <p className="text-[11px] text-emerald-700 mt-1">
+                      Authenticated Account: <span className="font-mono font-bold text-slate-800">{selectedPlugin.account_email || 'Authorized Account'}</span>
+                    </p>
+                    <p className="text-[10px] text-emerald-600/90 mt-0.5">
+                      Tokens securely encrypted with AES-256-GCM.
                     </p>
                   </div>
                   <button
@@ -655,43 +666,51 @@ export const IntegrationsPage: React.FC = () => {
                     className="w-full py-2.5 px-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                    <span>Disconnect Plugin</span>
+                    <span>Disconnect &amp; Revoke OAuth Access</span>
                   </button>
                 </div>
-              ) : (
+              ) : selectedPlugin.id.startsWith('google') || selectedPlugin.id === 'gmail' ? (
                 <div className="space-y-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                      Account Email / Identifier
-                    </label>
-                    <input
-                      type="text"
-                      value={accountEmailInput}
-                      onChange={(e) => setAccountEmailInput(e.target.value)}
-                      placeholder="user@example.com"
-                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                      API Key / Bearer Token (Optional for Simulation)
-                    </label>
-                    <input
-                      type="password"
-                      value={apiKeyInput}
-                      onChange={(e) => setApiKeyInput(e.target.value)}
-                      placeholder="sk-live-... or leave blank for local verification"
-                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
+                  {selectedPlugin.status === 'DEMO' && (
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800 space-y-1">
+                      <p className="font-semibold flex items-center gap-1 text-amber-900">
+                        <Info className="w-3.5 h-3.5 text-amber-600" />
+                        Local MCP Feed Active (Zero-Key Demo)
+                      </p>
+                      <p className="text-amber-800/90">
+                        Currently using local MCP dataset fallback. You can connect your real Google Account via Google OAuth below.
+                      </p>
+                    </div>
+                  )}
                   <button
                     onClick={() => handleConnect(selectedPlugin.id)}
                     disabled={isConnecting}
                     className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all flex items-center justify-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer"
                   >
                     {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                    <span>Connect &amp; Activate Plugin</span>
+                    <span>Connect with Google OAuth</span>
                   </button>
+                </div>
+              ) : selectedPlugin.id === 'outlook' || selectedPlugin.id.startsWith('microsoft') ? (
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleConnect(selectedPlugin.id)}
+                    disabled={isConnecting}
+                    className="w-full py-2.5 px-4 rounded-xl bg-[#0078D4] hover:bg-[#006abc] text-white text-xs font-bold transition-all flex items-center justify-center space-x-2 shadow-md shadow-blue-500/20 cursor-pointer"
+                  >
+                    {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                    <span>Connect with Microsoft 365</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1">
+                  <p className="font-semibold text-slate-800 flex items-center gap-1.5">
+                    <Info className="w-4 h-4 text-slate-500" />
+                    Planned Integration
+                  </p>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    This connector is cataloged in the 17-category integrations registry. Automated OAuth 2.0 authorization is planned on the enterprise capability roadmap.
+                  </p>
                 </div>
               )}
             </div>

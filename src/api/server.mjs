@@ -21,6 +21,8 @@ import {
   listIntegrations
 } from '../db/index.mjs';
 import { PLUGINS_CATALOG } from '../db/pluginsCatalog.mjs';
+import { oauthRouter } from '../integrations/oauthRoutes.mjs';
+import { getOAuthTokens, deleteOAuthTokens } from '../integrations/tokenStore.mjs';
 
 const API_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const MCP_SERVER_URL = process.env.MCP_SERVER_URL || 'http://127.0.0.1:3001/mcp';
@@ -28,6 +30,7 @@ const MCP_SERVER_URL = process.env.MCP_SERVER_URL || 'http://127.0.0.1:3001/mcp'
 export const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(oauthRouter);
 
 // In-memory event bus for bridging live AgentOrchestrator events to SSE listeners
 export const missionEventBus = new EventEmitter();
@@ -46,8 +49,9 @@ export async function createMCPClient() {
 
 // Domain categorizer for discovered MCP tools
 function categorizeToolDomain(name) {
-  if (name.startsWith('calendar_') || name.startsWith('notifications_')) return 'External Services';
-  if (name.startsWith('knowledge_') || name.startsWith('document_')) return 'Knowledge';
+  if (name.startsWith('calendar_') || name.startsWith('notifications_') || name.startsWith('outlook_calendar_')) return 'External Services';
+  if (name.startsWith('gmail_') || name.startsWith('outlook_')) return 'Communication';
+  if (name.startsWith('knowledge_') || name.startsWith('document_') || name.startsWith('drive_')) return 'Knowledge';
   if (name.startsWith('plan_') || name.startsWith('task_')) return 'Planning';
   if (name.startsWith('context_')) return 'Context';
   if (name.startsWith('data_')) return 'Data';
@@ -886,7 +890,34 @@ app.get('/api/activity', (req, res) => {
 // =========================================================================
 app.get('/api/integrations', (req, res) => {
   try {
-    const integrations = listIntegrations();
+    const rawIntegrations = listIntegrations();
+    const googleTokens = getOAuthTokens('google');
+    const msTokens = getOAuthTokens('microsoft');
+
+    const integrations = rawIntegrations.map(item => {
+      if (['google-calendar', 'gmail', 'google-drive'].includes(item.id)) {
+        if (googleTokens && googleTokens.accessToken && !googleTokens.isExpired) {
+          return {
+            ...item,
+            status: 'CONNECTED',
+            account_email: googleTokens.accountEmail,
+            is_synthetic: 0
+          };
+        }
+      }
+      if (['outlook', 'microsoft-calendar', 'microsoft-365-calendar'].includes(item.id)) {
+        if (msTokens && msTokens.accessToken && !msTokens.isExpired) {
+          return {
+            ...item,
+            status: 'CONNECTED',
+            account_email: msTokens.accountEmail,
+            is_synthetic: 0
+          };
+        }
+      }
+      return item;
+    });
+
     const genuineConnectedCount = integrations.filter(i => i.status === 'CONNECTED' && !i.is_synthetic).length;
     const demoIntegrations = integrations.filter(i => i.status === 'DEMO' || (i.is_synthetic && i.status !== 'NOT_CONNECTED' && i.status !== 'AVAILABLE'));
     const demoCount = demoIntegrations.length;
@@ -927,75 +958,58 @@ app.get('/api/integrations/:id', (req, res) => {
       });
     }
 
+    const googleTokens = getOAuthTokens('google');
+    const msTokens = getOAuthTokens('microsoft');
+
+    if (['google-calendar', 'gmail', 'google-drive'].includes(item.id) && googleTokens && googleTokens.accessToken) {
+      item.status = 'CONNECTED';
+      item.account_email = googleTokens.accountEmail;
+      item.is_synthetic = 0;
+    } else if (['outlook', 'microsoft-calendar', 'microsoft-365-calendar'].includes(item.id) && msTokens && msTokens.accessToken) {
+      item.status = 'CONNECTED';
+      item.account_email = msTokens.accountEmail;
+      item.is_synthetic = 0;
+    }
+
     const capabilityMap = {
       'google-calendar': {
         mcpTool: 'calendar_get_events',
         domain: 'Productivity / Calendar',
-        description: 'Simulated local calendar feed backing agent meeting intelligence. Local schedule is parsed by the self-hosted MCP Server without third-party cloud credential dependency.',
-        authType: 'DEMO_SIMULATION'
-      },
-      'google-drive': {
-        mcpTool: 'knowledge_search / document_analyze',
-        domain: 'Knowledge / Document Index',
-        description: 'Simulated document storage backing agent retrieval. Specifications and meeting notes are indexed locally in SQLite.',
-        authType: 'DEMO_SIMULATION'
+        description: 'Google Calendar API integration supporting real-time event lookup, agenda extraction, and meeting scheduling intelligence via OAuth 2.0.',
+        authType: 'OAUTH2'
       },
       'gmail': {
-        mcpTool: 'None (Planned)',
-        domain: 'Communication',
-        description: 'OAuth 2.0 connector for Gmail message drafting and inbox query. Currently planned on the enterprise capability roadmap.',
-        authType: 'OAUTH2_PLANNED'
+        mcpTool: 'gmail_search / gmail_get_message',
+        domain: 'Communication / Email',
+        description: 'Gmail API integration for reading meeting threads, inbox queries, and attendee communication intelligence via OAuth 2.0.',
+        authType: 'OAUTH2'
       },
-      'notion': {
-        mcpTool: 'None (Planned)',
-        domain: 'Knowledge',
-        description: 'Internal workspace connector for Notion pages and databases. Currently planned on the enterprise capability roadmap.',
-        authType: 'API_KEY_PLANNED'
-      },
-      'slack': {
-        mcpTool: 'None (Planned)',
-        domain: 'Communication',
-        description: 'Webhook and Bot Token connector for team channels and notifications. Currently planned on the enterprise capability roadmap.',
-        authType: 'OAUTH2_PLANNED'
-      },
-      'github': {
-        mcpTool: 'None (Planned)',
-        domain: 'Development',
-        description: 'GitHub App connector for repository inspection, issue tracking, and PR automation. Currently planned on the enterprise capability roadmap.',
-        authType: 'APP_TOKEN_PLANNED'
-      },
-      'google-maps': {
-        mcpTool: 'None (Planned)',
-        domain: 'Data',
-        description: 'Geocoding and place intelligence connector. Currently planned on the enterprise capability roadmap.',
-        authType: 'API_KEY_PLANNED'
+      'google-drive': {
+        mcpTool: 'drive_search / drive_get_file',
+        domain: 'Knowledge / Document Index',
+        description: 'Google Drive API integration for cloud document search, roadmap indexing, and specification retrieval via OAuth 2.0.',
+        authType: 'OAUTH2'
       },
       'outlook': {
-        mcpTool: 'None (Planned)',
-        domain: 'Communication',
-        description: 'Microsoft Graph connector for Outlook email and Microsoft 365 calendar. Currently planned on the enterprise capability roadmap.',
-        authType: 'MICROSOFT_GRAPH_PLANNED'
+        mcpTool: 'outlook_search / outlook_get_message',
+        domain: 'Communication / Email',
+        description: 'Microsoft Outlook email integration powered by Microsoft Graph API via OAuth 2.0.',
+        authType: 'OAUTH2'
       },
-      'figma': {
-        mcpTool: 'None (Planned)',
-        domain: 'Development',
-        description: 'Figma REST connector for design file node inspection and component extraction. Currently planned on the enterprise capability roadmap.',
-        authType: 'PAT_PLANNED'
+      'microsoft-calendar': {
+        mcpTool: 'outlook_calendar_get_events',
+        domain: 'Productivity / Calendar',
+        description: 'Microsoft 365 Calendar corporate event retrieval powered by Microsoft Graph API via OAuth 2.0.',
+        authType: 'OAUTH2'
       }
     };
 
-    const catalogItem = PLUGINS_CATALOG.find(p => p.id === item.id);
-    const capability = capabilityMap[item.id] || (catalogItem ? {
-      mcpTool: catalogItem.mcpTool || 'None (Planned)',
-      domain: catalogItem.domain || catalogItem.category,
-      description: catalogItem.description,
-      authType: catalogItem.authType || 'OAUTH2_PLANNED'
-    } : {
-      mcpTool: 'None',
+    const capability = capabilityMap[item.id] || {
+      mcpTool: 'None (Planned)',
       domain: item.category,
-      description: 'Connector configuration boundary.',
+      description: `${item.name} connector planned on enterprise capability roadmap.`,
       authType: 'PLANNED'
-    });
+    };
 
     res.json({
       ...item,
@@ -1006,13 +1020,11 @@ app.get('/api/integrations/:id', (req, res) => {
   }
 });
 
-// Connect real-world integration with real API Key / credentials
+// Connect integration endpoint (enforces real OAuth)
 app.post('/api/integrations/:id/connect', (req, res) => {
   try {
-    const { apiKey, email, token, accountName } = req.body || {};
-    const db = getDatabase();
     const integId = req.params.id;
-
+    const db = getDatabase();
     const existing = db.prepare('SELECT * FROM integrations WHERE id = ?').get(integId);
     if (!existing) {
       return res.status(404).json({
@@ -1020,44 +1032,32 @@ app.post('/api/integrations/:id/connect', (req, res) => {
       });
     }
 
-    const assignedEmail = email || existing.account_email || 'shanmukheswaramedicharla@gmail.com';
-    const nowIso = new Date().toISOString();
-
-    db.prepare(`
-      UPDATE integrations
-      SET status = 'CONNECTED',
-          account_email = ?,
-          is_synthetic = 0,
-          last_sync_at = ?
-      WHERE id = ?
-    `).run(assignedEmail, nowIso, integId);
-
-    // Record activity event
-    try {
-      recordActivityEvent({
-        id: `act_integ_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        missionId: null,
-        conversationId: null,
-        eventType: 'integration.connected',
-        title: `Integration Connected: ${existing.name}`,
-        description: `Successfully authenticated ${existing.name} for ${assignedEmail}.`,
-        domain: 'Integration',
-        status: 'SUCCESS',
-        metadata: { integrationId: integId, email: assignedEmail },
-        isSynthetic: 0
+    if (['google-calendar', 'gmail', 'google-drive'].includes(integId)) {
+      return res.status(400).json({
+        error: {
+          code: 'OAUTH_REQUIRED',
+          message: `Authentication for ${existing.name} must be performed via Google OAuth 2.0 Authorization Code flow. Please navigate to /api/integrations/google/authorize.`,
+          authorizeUrl: `/api/integrations/google/authorize?integrationId=${integId}`
+        }
       });
+    }
 
-      missionEventBus.emit('global:events', {
-        id: `act_integ_${Date.now()}`,
-        eventType: 'integration.connected',
-        title: `Integration Connected: ${existing.name}`,
-        metadata: { integrationId: integId, email: assignedEmail },
-        timestamp: new Date().toISOString()
+    if (['outlook', 'microsoft-calendar', 'microsoft-365-calendar'].includes(integId)) {
+      return res.status(400).json({
+        error: {
+          code: 'OAUTH_REQUIRED',
+          message: `Authentication for ${existing.name} must be performed via Microsoft OAuth 2.0 Authorization Code flow. Please navigate to /api/integrations/microsoft/authorize.`,
+          authorizeUrl: `/api/integrations/microsoft/authorize?integrationId=${integId}`
+        }
       });
-    } catch {}
+    }
 
-    const updated = db.prepare('SELECT id, name, category, status, account_email, is_synthetic, last_sync_at FROM integrations WHERE id = ?').get(integId);
-    res.json({ success: true, integration: updated });
+    return res.status(400).json({
+      error: {
+        code: 'GENERIC_CONNECT_DISABLED',
+        message: 'Fake simulation connect is disabled. Providers must authenticate via verified OAuth 2.0 or official API credentials.'
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: { code: 'DATABASE_ERROR', message: err.message } });
   }
@@ -1076,12 +1076,36 @@ app.post('/api/integrations/:id/disconnect', (req, res) => {
       });
     }
 
-    db.prepare(`
-      UPDATE integrations
-      SET status = 'AVAILABLE',
-          last_sync_at = NULL
-      WHERE id = ?
-    `).run(integId);
+    if (['google-calendar', 'gmail', 'google-drive'].includes(integId)) {
+      deleteOAuthTokens('google');
+      db.prepare(`
+        UPDATE integrations
+        SET status = 'AVAILABLE',
+            account_email = NULL,
+            is_synthetic = 1,
+            last_sync_at = NULL
+        WHERE id IN ('google-calendar', 'gmail', 'google-drive')
+      `).run();
+    } else if (['outlook', 'microsoft-calendar', 'microsoft-365-calendar'].includes(integId)) {
+      deleteOAuthTokens('microsoft');
+      db.prepare(`
+        UPDATE integrations
+        SET status = 'AVAILABLE',
+            account_email = NULL,
+            is_synthetic = 1,
+            last_sync_at = NULL
+        WHERE id IN ('outlook', 'microsoft-calendar', 'microsoft-365-calendar')
+      `).run();
+    } else {
+      db.prepare(`
+        UPDATE integrations
+        SET status = 'AVAILABLE',
+            account_email = NULL,
+            is_synthetic = 1,
+            last_sync_at = NULL
+        WHERE id = ?
+      `).run(integId);
+    }
 
     // Record activity event
     try {
@@ -1091,7 +1115,7 @@ app.post('/api/integrations/:id/disconnect', (req, res) => {
         conversationId: null,
         eventType: 'integration.disconnected',
         title: `Integration Disconnected: ${existing.name}`,
-        description: `Disconnected ${existing.name} session.`,
+        description: `Revoked credentials and disconnected ${existing.name}.`,
         domain: 'Integration',
         status: 'INFO',
         metadata: { integrationId: integId },
@@ -1107,7 +1131,8 @@ app.post('/api/integrations/:id/disconnect', (req, res) => {
       });
     } catch {}
 
-    res.json({ success: true, id: integId, status: 'AVAILABLE' });
+    const updated = db.prepare('SELECT id, name, category, status, account_email, is_synthetic, last_sync_at FROM integrations WHERE id = ?').get(integId);
+    res.json({ success: true, status: 'AVAILABLE', integration: updated });
   } catch (err) {
     res.status(500).json({ error: { code: 'DATABASE_ERROR', message: err.message } });
   }
@@ -1194,7 +1219,7 @@ app.get('/api/settings', async (req, res) => {
         serverUrl: MCP_SERVER_URL,
         transport: 'Streamable HTTP',
         protocolVersion: '2025-11-25',
-        toolsCount: 4
+        toolsCount: 11
       },
       persistence: {
         database: 'SQLite',
