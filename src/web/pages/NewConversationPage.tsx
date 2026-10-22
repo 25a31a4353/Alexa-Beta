@@ -67,7 +67,7 @@ const EXECUTION_MODES: ModeOption[] = [
   {
     id: 'deep',
     name: 'Deep Research',
-    tagline: 'Exhaustive document analysis',
+    tagline: 'Document analysis and risk extraction',
     description: 'Multi-step document inspection, anomaly detection, and deep synthesis.',
     icon: Search,
     color: 'text-blue-500'

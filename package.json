@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node src/index.mjs",
+    "postinstall": "npm run build",
     "dev": "vite",
     "build": "tsc && vite build",
     "build:web": "vite build",

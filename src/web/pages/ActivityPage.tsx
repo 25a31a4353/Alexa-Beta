@@ -160,6 +160,7 @@ export const ActivityPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedRange, setSelectedRange] = useState<string>('All Time');
   const [inspectedEventId, setInspectedEventId] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   // Filter category state
   const [selectedTypes, setSelectedTypes] = useState<Record<string, boolean>>({
@@ -261,6 +262,12 @@ export const ActivityPage: React.FC = () => {
       return true;
     });
   }, [activityData?.events, selectedTypes, searchQuery]);
+
+  // Display only the 5 most recent events by default; expand to all when requested
+  const displayedEvents = useMemo(() => {
+    if (isExpanded) return filteredEvents;
+    return filteredEvents.slice(0, 5);
+  }, [filteredEvents, isExpanded]);
 
   // Top Tools Used data derived directly from tool_executions in SQLite
   const topTools = useMemo(() => {
@@ -476,10 +483,12 @@ export const ActivityPage: React.FC = () => {
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div>
                 <h2 className="text-sm md:text-base font-bold text-slate-900">
-                  Recent Activity Audit Trail
+                  Recent Activity
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Showing {filteredEvents.length} of {totalActivitiesCount} recorded events
+                  {isExpanded
+                    ? `Showing all ${filteredEvents.length} recorded events`
+                    : `Showing 5 most recent events (${filteredEvents.length} total)`}
                 </p>
               </div>
               <span className="text-xs font-mono text-slate-400">
@@ -506,7 +515,7 @@ export const ActivityPage: React.FC = () => {
                 {/* Continuous vertical connector line */}
                 <div className="absolute left-[13px] top-4 bottom-5 w-[1.5px] bg-slate-200/80" />
 
-                {filteredEvents.map((item) => {
+                {displayedEvents.map((item) => {
                   const visuals = getEventVisuals(item);
                   const Icon = visuals.icon;
                   const isInspected = inspectedEventId === item.id;
@@ -584,6 +593,22 @@ export const ActivityPage: React.FC = () => {
                     </div>
                   );
                 })}
+
+                {/* Expand / Collapse Control */}
+                {filteredEvents.length > 5 && (
+                  <div className="pt-3 pb-1 text-center border-t border-slate-100">
+                    <button
+                      onClick={() => setIsExpanded(!isExpanded)}
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold text-blue-600 bg-blue-50/70 hover:bg-blue-100 border border-blue-200/80 transition-all cursor-pointer shadow-2xs"
+                    >
+                      {isExpanded ? (
+                        <span>▲ Show less</span>
+                      ) : (
+                        <span>▼ View all activity ({filteredEvents.length} events)</span>
+                      )}
+                    </button>
+                  </div>
+                )}
 
               </div>
             )}

@@ -133,7 +133,7 @@ async function runSmokeTests() {
       throw new Error('No MCP tools were executed during mission.');
     }
 
-    console.log(`[PASS] Mission [${mission.id}] completed successfully in ${mission.durationMs || 'N/A'}ms.`);
+    console.log(`[PASS] Mission [${mission.id}] completed successfully in ${mission.duration_ms || mission.durationMs || 'N/A'}ms.`);
     console.log(`       Steps Completed: ${steps.length}`);
     console.log(`       MCP Tools Called: ${toolExecutions.map((t) => t.tool_name).join(', ')}`);
     console.log(`       Result Snippet: "${(mission.result_summary || '').substring(0, 90)}..."\n`);

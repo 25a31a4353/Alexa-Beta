@@ -237,8 +237,9 @@ export class AutonomousDecisionEngine extends BaseLLMProvider {
       ...analysisData.decisions_needed.map(d => `• **${d}**`),
       `\n#### ⚠️ Identified Risks:`,
       ...analysisData.risks.map(r => `• ${r}`),
-      `\n#### ✅ Recommended Action Plan for You:`,
-      ...analysisData.recommendations_for_user.map(rec => `• ${rec}`)
+      `\n#### ✅ Recommended Preparation Actions & Checklist:`,
+      ...analysisData.recommendations_for_user.map(rec => `• ${rec}`),
+      `\n*(Actionable checklist generated from document analysis. Note: External push notification reminders are not scheduled.)*`
     ].join('\n');
 
     return {

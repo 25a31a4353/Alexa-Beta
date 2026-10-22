@@ -238,10 +238,10 @@ export class AgentOrchestrator {
       ];
     } else if (mode === 'deep') {
       planSteps = [
-        { stepIndex: 1, label: 'Exhaustive schedule and calendar reconnaissance', domain: 'External Services', assignedTool: 'calendar_get_events' },
-        { stepIndex: 2, label: 'Deep multi-vector search across all connected documents', domain: 'Knowledge', assignedTool: 'knowledge_search' },
-        { stepIndex: 3, label: 'Exhaustive document analysis, anomaly detection and risk scoring', domain: 'Knowledge', assignedTool: 'document_analyze' },
-        { stepIndex: 4, label: 'Strategic executive synthesis and grounded verification', domain: 'Verification', assignedTool: null }
+        { stepIndex: 1, label: 'Calendar reconnaissance and schedule lookup', domain: 'External Services', assignedTool: 'calendar_get_events' },
+        { stepIndex: 2, label: 'Relevant document search across connected knowledge base', domain: 'Knowledge', assignedTool: 'knowledge_search' },
+        { stepIndex: 3, label: 'Document analysis and risk extraction', domain: 'Knowledge', assignedTool: 'document_analyze' },
+        { stepIndex: 4, label: 'Grounded executive synthesis and verification', domain: 'Verification', assignedTool: null }
       ];
     } else {
       // autonomous default
