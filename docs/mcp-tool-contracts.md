@@ -7,6 +7,11 @@
 
 ---
 
+> [!NOTE]
+> **Implementation Reconciliation Note:** This document specifies the early architectural capability breakdown across 9 domains. In the production implementation, the self-hosted MCP server (`:3001/mcp`) implements and registers **11 concrete MCP tools** (`calendar_get_events`, `outlook_calendar_get_events`, `gmail_search`, `gmail_get_message`, `drive_search`, `drive_get_file`, `outlook_search`, `outlook_get_message`, `knowledge_search`, `document_analyze`, `ping`), with 5 executed sequentially in the hero mission.
+
+---
+
 ## 1. Architectural Distinction: 9 Capability Domains vs. 14 Concrete Tools
 
 In the Alexa+ UI and top-level architecture, user objectives are categorized into **9 Capability Domains**. Underneath, these domains are serviced by **14 Granular Concrete MCP Tools** exposed by the self-hosted MCP Server:

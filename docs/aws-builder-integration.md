@@ -5,7 +5,7 @@
 
 ## 1. Overview & Architecture
 
-As part of the **AWS Builder Mini-Challenge**, this project integrates **Amazon Bedrock** directly into the agentic decision pipeline. Rather than limiting tool calls to rigid static scripts, the agent can use foundation models hosted on AWS Bedrock—such as **Anthropic Claude 3.5 Sonnet** (`anthropic.claude-3-5-sonnet-20241022-v2:0`) or **Amazon Nova Pro** (`amazon.nova-pro-v1:0`)—to dynamically decide which Model Context Protocol (MCP) tools to invoke.
+As part of the **AWS Builder Mini-Challenge**, this project integrates **Amazon Bedrock** directly into the agentic decision pipeline. Rather than limiting tool calls to rigid static scripts, the agent can use foundation models hosted on AWS Bedrock—such as **Anthropic Claude 3.5 Sonnet** (`anthropic.claude-3-5-sonnet-20241022-v2:0`) or **Amazon Nova Pro** (`amazon.nova-pro-v1:0`)—to dynamically decide which Model Context Protocol (MCP) tools to invoke across multiple services.
 
 ```
                     USER GOAL
@@ -23,9 +23,11 @@ As part of the **AWS Builder Mini-Challenge**, this project integrates **Amazon 
              └─────────┬─────────┘
                        │
                        ▼
-                 MCP TOOL CALL
+                 MCP TOOL CALLS
              (calendar_get_events,
-              knowledge_search,
+              gmail_search,
+              drive_search,
+              drive_get_file,
               document_analyze)
                        │
                        ▼
@@ -64,8 +66,8 @@ BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
 # BEDROCK_MODEL_ID=amazon.nova-pro-v1:0
 ```
 
-### Zero-Downtime Resilience
-If AWS credentials are not configured or the network is unavailable, [`AmazonBedrockProvider`](../src/agent/llm/bedrock.mjs) logs an observability notice and automatically switches to the local `AutonomousDecisionEngine`. This guarantees that the application runs cleanly regardless of external AWS cloud access.
+### Zero-Downtime Resilience & Keyless Evaluation
+If AWS credentials are not configured or the network is unavailable, [`AmazonBedrockProvider`](../src/agent/llm/bedrock.mjs) logs an observability notice and automatically switches to the deterministic local `AutonomousDecisionEngine`. On the live public cloud deployment (`https://alexa-beta.onrender.com`), AWS credentials are intentionally omitted so evaluators can test every feature without configuring AWS IAM credentials.
 
 ---
 

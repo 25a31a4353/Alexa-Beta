@@ -12,7 +12,7 @@
 
 ### Feedback Questionnaire:
 1. **What we used it for:**
-   Building a self-hosted Model Context Protocol server exposing enterprise domain tools (`calendar_get_events`, `knowledge_search`, `document_analyze`, `ping`) over Streamable HTTP (`:3001/mcp`), paired with an agentic orchestrator that dynamically discovers and executes these tools using JSON-RPC 2.0.
+   Building a self-hosted Model Context Protocol server exposing 11 enterprise domain tools (spanning Google Calendar, Outlook, Gmail, Google Drive with Docs export, Document Analysis, Knowledge Search, and Diagnostics) over Streamable HTTP (`:3001/mcp`), paired with an agentic orchestrator that dynamically discovers and executes these tools using JSON-RPC 2.0.
 2. **What worked well:**
    - The declarative Zod schema integration for tool parameter definition (`server.tool(...)`) provides compile-time safety and automatic schema generation for `tools/list`.
    - The JSON-RPC 2.0 error framing is standardized and well-structured, allowing the agent orchestrator to handle tool execution failures gracefully.

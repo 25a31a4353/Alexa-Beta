@@ -9,5 +9,8 @@ build/
 *.db-shm
 *.db-wal
 *.pdf
+*.mp4
+*.webp
+scratch/
 .vscode/
 
