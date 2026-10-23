@@ -11,6 +11,8 @@ build/
 *.pdf
 *.mp4
 *.webp
+*.wav
+*.mp3
 scratch/
 .vscode/
 

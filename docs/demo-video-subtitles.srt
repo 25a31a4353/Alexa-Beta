@@ -1,0 +1,127 @@
+1
+00:00:00,300 --> 00:00:05,000
+Welcome to Alexa+, an autonomous multi-service mission execution platform.
+
+2
+00:00:05,000 --> 00:00:10,500
+Built for the Amazon Developer Hackathon, Alexa+ accepts high-level real-world missions,
+
+3
+00:00:10,500 --> 00:00:15,600
+coordinating tools across services to deliver verified, evidence-grounded results.
+
+4
+00:00:16,300 --> 00:00:20,500
+Here is the prototype's primary navigation in the left sidebar.
+
+5
+00:00:20,500 --> 00:00:27,000
+The sidebar provides instant access to every part of the system: the Home launchpad,
+
+6
+00:00:27,000 --> 00:00:33,200
+New Conversation, Mission registry, Knowledge Base, MCP Tools, Integrations, Activity, and Settings.
+
+7
+00:00:34,300 --> 00:00:38,000
+Let's dispatch a real mission. In the composer, we input a high-level goal:
+
+8
+00:00:38,000 --> 00:00:45,200
+'Prepare me for my Alexa+ product review tomorrow. Check calendar, find emails, locate documents in Drive,'
+
+9
+00:00:45,200 --> 00:00:52,300
+'identify preparation gaps, and create a checklist.' We select autonomous mode and submit.
+
+10
+00:00:53,300 --> 00:00:58,000
+The prototype executes a five-phase lifecycle: Understand, Plan, Use Tools, Verify, and Result.
+
+11
+00:00:58,000 --> 00:01:04,000
+The agent interprets temporal constraints, resolves Calendar, Email, and Drive domains,
+
+12
+00:01:04,000 --> 00:01:10,500
+and builds a Directed Acyclic Graph plan where each step feeds the next.
+
+13
+00:01:11,300 --> 00:01:16,500
+During execution, the agent connects to our self-hosted MCP server over Streamable HTTP.
+
+14
+00:01:16,500 --> 00:01:22,000
+Watch the tools execute: calendar_get_events retrieves meeting details;
+
+15
+00:01:22,000 --> 00:01:26,500
+gmail_search queries discussions matching meeting attendees;
+
+16
+00:01:26,500 --> 00:01:31,000
+drive_search discovers the architecture document in Drive;
+
+17
+00:01:31,000 --> 00:01:34,200
+and document_analyze deeply parses the text to extract risks and preparation gaps.
+
+18
+00:01:35,300 --> 00:01:40,000
+Here is the completed mission briefing grounded in retrieved tool evidence.
+
+19
+00:01:40,000 --> 00:01:45,500
+It confirms schedule, attributes data sources transparently to our local fallback dataset,
+
+20
+00:01:45,500 --> 00:01:50,600
+highlights key architectural decisions, and surfaces critical preparation gaps with an actionable checklist.
+
+21
+00:01:51,800 --> 00:01:57,000
+Navigating to Tools, we inspect our self-hosted MCP server running on port 3001 over Streamable HTTP.
+
+22
+00:01:57,000 --> 00:02:03,000
+All eleven domain tools are dynamically registered using standardized Zod schemas,
+
+23
+00:02:03,000 --> 00:02:07,700
+with an interactive runner for live testing and latency measurement.
+
+24
+00:02:08,800 --> 00:02:14,500
+On the Integrations page, Alexa+ supports live Google Workspace OAuth with AES-256 encryption.
+
+25
+00:02:14,500 --> 00:02:20,500
+When unauthenticated, the system transparently activates its local SQLite fallback,
+
+26
+00:02:20,500 --> 00:02:25,100
+ensuring reviewers can evaluate every feature with zero configuration.
+
+27
+00:02:26,300 --> 00:02:31,500
+The Activity stream delivers real-time observability via Server-Sent Events, logging state transitions.
+
+28
+00:02:31,500 --> 00:02:36,500
+In Settings, Amazon Bedrock Converse powers agent reasoning
+
+29
+00:02:36,500 --> 00:02:40,200
+using Claude 3.5 Sonnet and Amazon Nova Pro.
+
+30
+00:02:41,300 --> 00:02:46,500
+We also authored mcp-session-reaper, an MIT-licensed package for Streamable HTTP socket hygiene.
+
+31
+00:02:46,500 --> 00:02:50,500
+Alexa+ turns high-level intent into verified action.
+
+32
+00:02:50,500 --> 00:02:53,500
+Explore the live prototype. Thank you!
